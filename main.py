@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from database import Base, engine
-from routers import snippets, users
+from routers import languages, snippets, users
 
 # load_dotenv()
 app = FastAPI()
@@ -27,3 +27,4 @@ async def validation_exception_handler(request, exc):
 
 # app.include_router(snippets.router)
 app.include_router(users.router)
+app.include_router(languages.router)

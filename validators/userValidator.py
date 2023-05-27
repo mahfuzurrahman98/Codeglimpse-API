@@ -6,7 +6,6 @@ from schemas.UserSchema import UserSchema
 
 
 def check_existing_user(user: UserSchema):
-    print(user)
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
         raise HTTPException(

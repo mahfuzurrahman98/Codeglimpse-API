@@ -10,14 +10,16 @@ class Snippet(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     title = Column(String(50), nullable=False)
     content = Column(Text, nullable=False)
-    language = Column(String(5), nullable=False)
-    visibility = Column(Enum(1, 2, 3), nullable=False)
+    language = Column(Integer, ForeignKey('programming_languages.id'))
+    visibility = Column(Enum('1', '2', '3'), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'))
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
         TIMESTAMP,
         server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
     )
+    deleted_at = Column(TIMESTAMP, nullable=True)
 
-# def __repr__(self):
-#     return f'User(id={self.id}, name={self.name}, email={self.email}, city={self.address.city}, country={self.address.country})'
+    programming_language = relationship(
+        'ProgrammingLanguage', back_populates='snippets')
+    user = relationship('User', back_populates='snippets')

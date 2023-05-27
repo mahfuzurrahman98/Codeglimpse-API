@@ -1,0 +1,33 @@
+from datetime import datetime, timedelta
+from os import environ
+
+from dotenv import load_dotenv
+from jose import jwt
+
+load_dotenv()
+
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+
+    expires_delta = timedelta(
+        minutes=int(environ.get('ACCESS_TOKEN_EXPIRE_MINUTES'))
+    )
+    expire = datetime.utcnow() + expires_delta if expires_delta else datetime.utcnow()
+
+    to_encode.update({'exp': expire})
+    encoded_jwt = jwt.encode(
+        to_encode,
+        environ.get('SECRET_KEY'),
+        algorithm=environ.get('ALGORITHM')
+    )
+    return encoded_jwt
+
+
+def decode(token):
+    payload = jwt.decode(
+        token,
+        environ.get('SECRET_KEY'),
+        algorithms=[environ.get('ALGORITHM')]
+    )
+    return payload
