@@ -103,3 +103,39 @@ def login(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
+
+
+@router.get('/auth/profile')
+def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
+    try:
+        payload = jwt.decode(
+            token,
+            environ.get('SECRET_KEY'),
+            algorithms=[environ.get('ALGORITHM')]
+        )
+        username = payload.get('sub')
+        user = db.query(User).filter(User.username == username).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='User not found'
+            )
+
+        user_data = {
+            'id': user.id,
+            'name': user.name,
+            'username': user.username,
+            'email': user.email
+        }
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=user_data
+        )
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid token',
+            headers={'WWW-Authenticate': 'Bearer'}
+        )
