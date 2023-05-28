@@ -2,7 +2,9 @@ from datetime import datetime, timedelta
 from os import environ
 
 from dotenv import load_dotenv
+from fastapi import HTTPException, status
 from jose import jwt
+from jose.exceptions import JWTError
 
 load_dotenv()
 
@@ -25,9 +27,16 @@ def create_access_token(data: dict):
 
 
 def decode(token):
-    payload = jwt.decode(
-        token,
-        environ.get('SECRET_KEY'),
-        algorithms=[environ.get('ALGORITHM')]
-    )
-    return payload
+    try:
+        payload = jwt.decode(
+            token.replace('Bearer ', ''),
+            environ.get('SECRET_KEY'),
+            algorithms=[environ.get('ALGORITHM')]
+        )
+        return payload
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid token',
+            headers={"WWW-Authenticate": "Bearer"}
+        )

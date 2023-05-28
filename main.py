@@ -1,13 +1,15 @@
 from os import environ
 
 # from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from database import Base, engine
+from middlewares import authenticate
 from routers import languages, snippets, users
+from seeders import seed
 
 # load_dotenv()
 app = FastAPI()
@@ -25,6 +27,9 @@ async def validation_exception_handler(request, exc):
         content=jsonable_encoder({'detail': error_messages}),
     )
 
-# app.include_router(snippets.router)
+
+app.include_router(snippets.router)
 app.include_router(users.router)
 app.include_router(languages.router)
+# app.include_router(seed.router)
+app.middleware('http')(authenticate)

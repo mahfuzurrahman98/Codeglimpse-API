@@ -13,6 +13,7 @@ def seed_programming_languages(programming_languages: list):
             alt_name=alt_name,
             active=1
         )
-        # db.add(new_language)
+        db.add(new_language)
 
-    # db.commit()
+    db.commit()
+    db.close()
