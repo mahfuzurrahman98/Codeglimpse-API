@@ -108,6 +108,6 @@ def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Invalid token',
+            detail='Unauthorized',
             headers={'WWW-Authenticate': 'Bearer'}
         )

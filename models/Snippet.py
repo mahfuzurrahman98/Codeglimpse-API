@@ -12,11 +12,14 @@ class Snippet(Base):
     content = Column(Text, nullable=False)
     language = Column(Integer, ForeignKey('programming_languages.id'))
     visibility = Column(Enum('1', '2', '3'), nullable=False)
+    share_with = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
         TIMESTAMP,
-        server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
+        server_default=text(
+            'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'
+        )
     )
     deleted_at = Column(TIMESTAMP, nullable=True)
 

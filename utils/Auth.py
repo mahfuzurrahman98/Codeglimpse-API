@@ -37,6 +37,6 @@ def decode(token):
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Invalid token',
+            detail='Unauthorized',
             headers={"WWW-Authenticate": "Bearer"}
         )

@@ -2,7 +2,6 @@ from sqlalchemy import TIMESTAMP, Column, Integer, String, text
 from sqlalchemy.orm import relationship
 
 from database import Base
-from models.Snippet import Snippet
 
 
 class User(Base):
@@ -19,3 +18,12 @@ class User(Base):
     )
 
     snippets = relationship('Snippet', back_populates='user')
+
+    def serialize(self):
+        # print(self.email)
+        return {
+            'id': self.id,
+            'name': self.name,
+            'username': self.username,
+            'email': self.email
+        }

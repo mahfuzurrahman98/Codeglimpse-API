@@ -14,7 +14,6 @@ router = APIRouter()
 @router.get('/languages')
 def index(request: Request):
     try:
-        print(request.state.user.email)
         languages = db.query(ProgrammingLanguage).all()
         languages = [language.serialize() for language in languages]
         return JSONResponse(status_code=200, content=languages)
