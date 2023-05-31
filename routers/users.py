@@ -34,12 +34,10 @@ def register(
         resp = {
             'detail': 'User created',
             'data': {
-                'user': {
-                    'id': new_user.id,
-                    'name': new_user.name,
-                    'username': new_user.username,
-                    'email': new_user.email,
-                }
+                'id': new_user.id,
+                'name': new_user.name,
+                'username': new_user.username,
+                'email': new_user.email,
             }
         }
         return JSONResponse(status_code=201, content=resp)
@@ -103,7 +101,10 @@ def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
 
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=user_data
+            content={
+                'detail': 'Profile data fetched successfully',
+                'data': user_data
+            }
         )
     except JWTError as e:
         raise HTTPException(

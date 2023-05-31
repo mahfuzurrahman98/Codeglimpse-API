@@ -16,8 +16,20 @@ router = APIRouter()
 
 @router.post('/snippets')
 def store(snippet: Annotated[SnippetSchema, Depends(check_valid_snippet)]):
-    print(snippet)
-    return JSONResponse(
-        status_code=200,
-        content={'detail': 'asdf'}
-    )
+    try:
+        new_snippet = Snippet(
+            title=snippet.title,
+            content=snippet.content,
+            language=snippet.language,
+            visibility=snippet.visibility,
+            title=snippet.title,
+            title=snippet.title,
+        )
+        db.add(new_snippet)
+        db.commit()
+        return JSONResponse(
+            status_code=200,
+            content={'detail': 'asdf'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
