@@ -1,11 +1,25 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request, status
 
 from database import db
+from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import SnippetSchema
 
 
-def check_valid_snippet(snippet: SnippetSchema):
+def check_valid_snippet(request: Request, snippet: SnippetSchema):
+    snippet.title = snippet.title.strip()
+    snippet.content = snippet.content.strip()
+    snippet.share_with = snippet.share_with.strip() if snippet.share_with else None
+
+    any_snippet = db.query(Snippet).filter(
+        Snippet.title == snippet.title
+    ).first()
+    if any_snippet:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Snippet with this title already exist'
+        )
+
     if (snippet.visibility == 2):
         if (snippet.share_with is None):
             raise HTTPException(
@@ -31,6 +45,11 @@ def check_valid_snippet(snippet: SnippetSchema):
                 )
 
         for user_id in share_with_ids:
+            if (request.state.user.get('id') == int(user_id)):
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail='You don\'t need to share with yourself'
+                )
             user = db.query(User).filter(User.id == user_id).first()
             if (user is None):
                 raise HTTPException(
