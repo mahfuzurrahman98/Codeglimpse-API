@@ -1,11 +1,26 @@
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
 
 
-class SnippetSchema(BaseModel):
+class VisibilityEnum(Enum):
+    ONE = 1
+    TWO = 2
+    THREE = 3
+
+
+class createSnippetSchema(BaseModel):
     title: str
     content: str
     language: str
-    visibility: int
+    visibility: VisibilityEnum
+    share_with: Optional[str]
+
+
+class updateSnippetSchema(BaseModel):
+    title: Optional[str]
+    content: Optional[str]
+    language: Optional[str]
+    visibility: Optional[VisibilityEnum]
     share_with: Optional[str]

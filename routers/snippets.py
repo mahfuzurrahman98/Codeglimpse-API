@@ -9,14 +9,21 @@ from passlib.exc import UnknownHashError
 from database import db
 from models.ProgrammingLanguage import ProgrammingLanguage
 from models.Snippet import Snippet
-from schemas.SnippetSchema import SnippetSchema
-from validators.snippetValidator import check_valid_snippet
+from schemas.SnippetSchema import createSnippetSchema
+from validators.snippetValidator import (validate_new_snippet,
+                                         validate_update_snippet)
 
 router = APIRouter()
 
 
 @router.post('/snippets')
-def store(request: Request, snippet: Annotated[SnippetSchema, Depends(check_valid_snippet)]):
+def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
+    return JSONResponse(
+        status_code=200,
+        content={
+            'snippet': snippet
+        }
+    )
     try:
         new_snippet = Snippet(
             uid=str(uuid4()),
