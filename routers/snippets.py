@@ -3,13 +3,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
-from jose import JWTError
-from passlib.exc import UnknownHashError
 
 from database import db
-from models.ProgrammingLanguage import ProgrammingLanguage
 from models.Snippet import Snippet
-from schemas.SnippetSchema import createSnippetSchema
+from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from validators.snippetValidator import (validate_new_snippet,
                                          validate_update_snippet)
 
@@ -18,12 +15,6 @@ router = APIRouter()
 
 @router.post('/snippets')
 def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
-    return JSONResponse(
-        status_code=200,
-        content={
-            'snippet': snippet
-        }
-    )
     try:
         new_snippet = Snippet(
             uid=str(uuid4()),
@@ -32,7 +23,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             language=snippet.language,
             visibility=snippet.visibility,
             user_id=request.state.user.get('id'),
-            share_with=snippet.share_with
+            share_with=snippet.share_with if snippet.visibility == 2 else None
         )
         db.add(new_snippet)
         db.commit()
@@ -126,5 +117,37 @@ def index(request: Request):
                 }
             }
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put('/snippets/{id}')
+def update_snippet(id: int, request: Request, snippet: SnippetSchema = Depends(validate_update_snippet), db: Session = Depends(get_db)):
+    # Find the snippet to update
+    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
+    if not existing_snippet:
+        raise HTTPException(status_code=404, detail='Snippet not found')
+
+    # Update the snippet attributes based on the request
+    existing_snippet.title = snippet.title
+    existing_snippet.content = snippet.content
+    existing_snippet.language = snippet.language
+    existing_snippet.visibility = snippet.visibility
+    existing_snippet.share_with = snippet.share_with if snippet.visibility == 2 else None
+
+    try:
+        db.commit()
+        return {
+            'detail': 'Snippet updated successfully',
+            'data': {
+                'snippet': {
+                    'id': existing_snippet.id,
+                    'uid': existing_snippet.uid,
+                    'title': existing_snippet.title,
+                    'content': existing_snippet.content,
+                    'language': existing_snippet.programming_language.name
+                }
+            }
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

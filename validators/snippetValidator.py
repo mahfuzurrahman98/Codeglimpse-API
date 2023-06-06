@@ -64,9 +64,8 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
     return snippet
 
 
-def validate_update_snippet(request: Request, update_snippet: updateSnippetSchema):
-    existing_snippet = db.query(Snippet).filter(
-        Snippet.id == request.id).first()
+def validate_update_snippet(request: Request, id: int, update_snippet: updateSnippetSchema):
+    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
 
     if existing_snippet is None:
         raise HTTPException(
