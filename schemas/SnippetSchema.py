@@ -13,7 +13,7 @@ class VisibilityEnum(Enum):
 class createSnippetSchema(BaseModel):
     title: str
     content: str
-    language: str
+    language: int
     visibility: VisibilityEnum
     share_with: Optional[str]
 
@@ -24,7 +24,7 @@ class createSnippetSchema(BaseModel):
 class updateSnippetSchema(BaseModel):
     title: Optional[str]
     content: Optional[str]
-    language: Optional[str]
+    language: Optional[int]
     visibility: Optional[VisibilityEnum]
     share_with: Optional[str]
 

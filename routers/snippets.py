@@ -7,7 +7,8 @@ from fastapi.responses import JSONResponse
 from database import db
 from models.Snippet import Snippet
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
-from validators.snippetValidator import (validate_new_snippet,
+from validators.snippetValidator import (validate_delete_snippet,
+                                         validate_new_snippet,
                                          validate_update_snippet)
 
 router = APIRouter()
@@ -38,6 +39,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
                         'uid': new_snippet.uid,
                         'title': new_snippet.title,
                         'content': new_snippet.content,
+                        'visibility': new_snippet.visibility,
                         'language': new_snippet.programming_language.name
                     }
                 }
@@ -122,18 +124,18 @@ def index(request: Request):
 
 
 @router.put('/snippets/{id}')
-def update_snippet(id: int, request: Request, snippet: SnippetSchema = Depends(validate_update_snippet), db: Session = Depends(get_db)):
+def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
     # Find the snippet to update
-    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
-    if not existing_snippet:
+    _snippet = db.query(Snippet).filter(Snippet.id == id).first()
+    if not _snippet:
         raise HTTPException(status_code=404, detail='Snippet not found')
 
     # Update the snippet attributes based on the request
-    existing_snippet.title = snippet.title
-    existing_snippet.content = snippet.content
-    existing_snippet.language = snippet.language
-    existing_snippet.visibility = snippet.visibility
-    existing_snippet.share_with = snippet.share_with if snippet.visibility == 2 else None
+    _snippet.title = snippet.title if snippet.title is not None else _snippet.title
+    _snippet.content = snippet.content if snippet.content is not None else _snippet.content
+    _snippet.language = snippet.language if snippet.language is not None else _snippet.language
+    _snippet.visibility = snippet.visibility if snippet.visibility is not None else _snippet.visibility
+    _snippet.share_with = snippet.share_with if snippet.visibility == 2 else None
 
     try:
         db.commit()
@@ -141,13 +143,31 @@ def update_snippet(id: int, request: Request, snippet: SnippetSchema = Depends(v
             'detail': 'Snippet updated successfully',
             'data': {
                 'snippet': {
-                    'id': existing_snippet.id,
-                    'uid': existing_snippet.uid,
-                    'title': existing_snippet.title,
-                    'content': existing_snippet.content,
-                    'language': existing_snippet.programming_language.name
+                    'id': _snippet.id,
+                    'uid': _snippet.uid,
+                    'title': _snippet.title,
+                    'content': _snippet.content,
+                    'visibility': _snippet.visibility,
+                    'language': _snippet.programming_language.name,
                 }
             }
         }
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete('/snippets/{id}')
+def destroy(request: Request, snippet: Snippet = Depends(validate_delete_snippet)):
+    try:
+        db.delete(snippet)
+        db.commit()
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snippet deleted successfully',
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -97,3 +97,22 @@ def validate_update_snippet(request: Request, id: int, update_snippet: updateSni
             update_snippet.share_with = ''
 
     return update_snippet
+
+
+def validate_delete_snippet(request: Request, id: int):
+    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
+
+    if existing_snippet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Snippet not found'
+        )
+
+    # check if the user requesting to delet ethe snippet is the owner of the snippet
+    if request.state.user.get('id') != existing_snippet.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You don\'t have permission to delete this snippet'
+        )
+
+    return existing_snippet
