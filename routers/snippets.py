@@ -94,7 +94,7 @@ def show_by_id(request: Request, id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get('/snippets/{uid}')
+@router.get('/snippets/uuid/{uid}')
 def show(request: Request, uid: str):
     try:
         snippet = db.query(Snippet).filter(
