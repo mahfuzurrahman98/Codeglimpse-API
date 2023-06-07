@@ -50,7 +50,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
 
 
 @router.get('/snippets/{id}')
-def show(request: Request, id: int):
+def show_by_id(request: Request, id: int):
     try:
         snippet = db.query(Snippet).filter(
             Snippet.id == id
@@ -66,6 +66,52 @@ def show(request: Request, id: int):
 
         if (snippet.user_id != request.state.user.get('id')):
             share_with_ids = snippet.share_with.split(',')
+            if (
+                    snippet.visibility == 1 or
+                    (
+                        snippet.visibility == 2 and
+                        request.state.user.get('id') not in share_with_ids
+                    )
+            ):
+                return JSONResponse(
+                    status_code=403,
+                    content={
+                        'detail': 'Access denied',
+                    }
+                )
+
+        snippet = snippet.serialize()
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppet fetched successfully',
+                'data': {
+                    'snippet': snippet
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get('/snippets/{uid}')
+def show(request: Request, uid: str):
+    try:
+        snippet = db.query(Snippet).filter(
+            Snippet.uid == uid
+        ).first()
+
+        if snippet is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    'detail': 'Snippets not found',
+                }
+            )
+
+        if (snippet.user_id != request.state.user.get('id')):
+            share_with_ids = snippet.share_with.split(',')
+            # if snippet is private or it is protected but not shared with the user
             if (
                     snippet.visibility == 1 or
                     (

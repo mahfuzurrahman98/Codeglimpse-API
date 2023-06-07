@@ -30,17 +30,25 @@ class Snippet(Base):
     user = relationship('User', back_populates='snippets')
 
     def serialize(self):
-        shared_with_users = []
-        for user_id in self.share_with.split(','):
-            shared_with_users.append(db.query(User).get(user_id).serialize())
-        return {
+
+        _snippet = {
             'id': self.id,
             'uid': self.uid,
             'title': self.title,
             'content': self.content,
             'language': self.programming_language.name,
+            'visibility': self.visibility,
             'owner': self.user.name,
-            'share_with': shared_with_users,
-            'created_at': str(self.created_at),
-            'updated_at': str(self.updated_at)
+
         }
+
+        if self.visibility == 2:
+            shared_with_users = []
+            for user_id in self.share_with.split(','):
+                shared_with_users.append(
+                    db.query(User).get(user_id).serialize())
+            _snippet['shared_with'] = shared_with_users
+
+        _snippet['created_at'] = str(self.created_at)
+        _snippet['updated_at'] = str(self.updated_at)
+        return _snippet
