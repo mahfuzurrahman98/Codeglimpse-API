@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from database import db
 from middlewares import get_current_user
 from models.ProgrammingLanguage import ProgrammingLanguage
-from schemas.UserSchema import UserSchema
+from schemas.UserSchema import createUserSchema
 
 router = APIRouter()
 

@@ -2,10 +2,10 @@ from fastapi import HTTPException, status
 
 from database import db
 from models.User import User
-from schemas.UserSchema import UserSchema
+from schemas.UserSchema import createUserSchema
 
 
-def check_existing_user(user: UserSchema):
+def check_existing_user(user: createUserSchema):
     existing_email = db.query(User).filter(User.email == user.email).first()
     if existing_email:
         raise HTTPException(

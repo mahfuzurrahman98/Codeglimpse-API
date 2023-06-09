@@ -30,7 +30,6 @@ class Snippet(Base):
     user = relationship('User', back_populates='snippets')
 
     def serialize(self):
-
         _snippet = {
             'id': self.id,
             'uid': self.uid,

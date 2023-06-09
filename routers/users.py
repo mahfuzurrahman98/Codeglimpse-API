@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
@@ -8,17 +8,17 @@ from passlib.exc import UnknownHashError
 
 from database import db
 from models.User import User
-from schemas.UserSchema import UserSchema
+from schemas.UserSchema import createUserSchema, updateUserSchema
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
-from validators.userValidator import check_existing_user
+from validators.userValidator import check_existing_user, up
 
 router = APIRouter()
 
 
 @router.post('/auth/register')
 def register(
-    user: Annotated[UserSchema, Depends(check_existing_user)]
+    user: Annotated[createUserSchema, Depends(check_existing_user)]
 ):
     try:
         new_user = User(
@@ -112,3 +112,8 @@ def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
             detail='Unauthorized',
             headers={'WWW-Authenticate': 'Bearer'}
         )
+
+
+@router.put('/user/profile')
+def update_profile(request: Request, id: int, user: updateUserSchema):
+    pass
