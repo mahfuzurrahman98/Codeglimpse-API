@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, constr, validator
+from pydantic import BaseModel, field_validator
 
 
 class VisibilityEnum(Enum):
@@ -17,32 +17,39 @@ class createSnippetSchema(BaseModel):
     visibility: VisibilityEnum
     share_with: Optional[str]
 
-    class Config:
-        use_enum_values = True
+    # class Config:
+    #     use_enum_values = True
 
-    @validator('title', 'content')
-    def validate_blank_fields(cls, value, field):
-        field_name = field.alias
+    @field_validator('title')
+    def validate_blank_title_field(cls, value):
         value = value.strip()
         if value == '':
-            raise ValueError(f'{field_name.capitalize()} cannot be blank')
+            raise ValueError('Title cannot be blank')
+        return value
+    
+    @field_validator('content')
+    def validate_blank_content_field(cls, value):
+        value = value.strip()
+        if value == '':
+            raise ValueError('Content cannot be blank')
         return value
 
 
 class updateSnippetSchema(BaseModel):
-    title: Optional[str]
-    content: Optional[str]
-    language: Optional[int]
-    visibility: Optional[VisibilityEnum]
-    share_with: Optional[str]
+    pass
+#     title: Optional[str]
+#     content: Optional[str]
+#     language: Optional[int]
+#     visibility: Optional[VisibilityEnum]
+#     share_with: Optional[str]
 
-    class Config:
-        use_enum_values = True
+#     class Config:
+#         use_enum_values = True
 
-    @validator('title', 'content', 'language', 'share_with')
-    def validate_fields(cls, value, field):
-        field_name = field.alias
-        value = value.strip()
-        if value is not None and not isinstance(value, field.type_):
-            raise ValueError(f'Invalid type for "{field_name}" field')
-        return value
+#     @field_validator('title', 'content', 'language', 'share_with')
+#     def validate_fields(cls, value, field):
+#         field_name = field.alias
+#         value = value.strip()
+#         if value is not None and not isinstance(value, field.type_):
+#             raise ValueError(f'Invalid type for "{field_name}" field')
+#         return value
