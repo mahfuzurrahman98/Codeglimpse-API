@@ -11,7 +11,7 @@ from models.User import User
 from schemas.UserSchema import createUserSchema, updateUserSchema
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
-from validators.userValidator import check_existing_user, up
+from validators.userValidator import check_existing_user
 
 router = APIRouter()
 
