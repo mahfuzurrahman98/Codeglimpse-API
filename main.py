@@ -1,6 +1,5 @@
 from os import environ
 
-# from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -11,7 +10,6 @@ from middlewares import authenticate
 from routers import languages, snippets, users
 from seeders import seed
 
-# load_dotenv()
 app = FastAPI()
 Base.metadata.create_all(engine)
 
@@ -32,4 +30,4 @@ app.include_router(snippets.router)
 app.include_router(users.router)
 app.include_router(languages.router)
 # app.include_router(seed.router)
-app.middleware('http')(authenticate)
+# app.middleware('http')(authenticate)
