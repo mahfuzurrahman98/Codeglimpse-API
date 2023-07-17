@@ -17,16 +17,13 @@ class createSnippetSchema(BaseModel):
     visibility: VisibilityEnum
     share_with: Optional[str]
 
-    # class Config:
-    #     use_enum_values = True
-
     @field_validator('title')
     def validate_blank_title_field(cls, value):
         value = value.strip()
         if value == '':
             raise ValueError('Title cannot be blank')
         return value
-    
+
     @field_validator('content')
     def validate_blank_content_field(cls, value):
         value = value.strip()
@@ -36,20 +33,36 @@ class createSnippetSchema(BaseModel):
 
 
 class updateSnippetSchema(BaseModel):
-    pass
-#     title: Optional[str]
-#     content: Optional[str]
-#     language: Optional[int]
-#     visibility: Optional[VisibilityEnum]
-#     share_with: Optional[str]
+    title: Optional[str]
+    content: Optional[str]
+    language: Optional[int]
+    visibility: Optional[VisibilityEnum]
+    share_with: Optional[str]
 
-#     class Config:
-#         use_enum_values = True
+    @field_validator('title')
+    def validate_title_field(cls, value):
+        value = value.strip()
+        if value is not None and not isinstance(value, cls.title.type):
+            raise ValueError('Invalid type for title field')
+        return value
 
-#     @field_validator('title', 'content', 'language', 'share_with')
-#     def validate_fields(cls, value, field):
-#         field_name = field.alias
-#         value = value.strip()
-#         if value is not None and not isinstance(value, field.type_):
-#             raise ValueError(f'Invalid type for "{field_name}" field')
-#         return value
+    @field_validator('content')
+    def validate_content_field(cls, value):
+        value = value.strip()
+        if value is not None and not isinstance(value, cls.content.type):
+            raise ValueError('Invalid type for content field')
+        return value
+
+    @field_validator('language')
+    def validate_language_field(cls, value):
+        value = value.strip()
+        if value is not None and not isinstance(value, cls.language.type):
+            raise ValueError('Invalid type for language field')
+        return value
+
+    @field_validator('share_with')
+    def validate_share_with_field(cls, value):
+        value = value.strip()
+        if value is not None and not isinstance(value, cls.share_with.type):
+            raise ValueError('Invalid type for share_with field')
+        return value
