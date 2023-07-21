@@ -1,7 +1,10 @@
 from typing import Annotated
+from os import environ
+
+from dotenv import load_dotenv
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from passlib.exc import UnknownHashError
@@ -13,10 +16,14 @@ from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
 from validators.userValidator import check_existing_user
 
+import httpx
+
+
+load_dotenv()
 router = APIRouter()
 
 
-@router.post('/auth/register')
+@router.post('/users/auth/register')
 def register(
     user: Annotated[createUserSchema, Depends(check_existing_user)]
 ):
@@ -46,7 +53,7 @@ def register(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post('/auth/login')
+@router.post('/users/auth/login')
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -79,7 +86,7 @@ def login(
         )
 
 
-@router.get('/auth/profile')
+@router.get('/users/auth/profile')
 def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
     try:
         payload = Auth.decode(token)
@@ -117,3 +124,57 @@ def profile(token: str = Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))):
 @router.put('/user/profile')
 def update_profile(request: Request, id: int, user: updateUserSchema):
     pass
+
+
+@router.get("/users/auth/google-login")
+def initiate_google_oauth():
+    google_auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={environ('GOOGLE_CLIENT_ID')}&redirect_uri={environ('GOOGLE_REDIRECT_LOGIN_URI')}&response_type=code&scope=openid%20profile%20email"
+
+    return RedirectResponse(url=google_auth_url)
+
+
+
+@router.get('/users/auth/google-auth-login/callback')
+def google_oauth_login_callback(code: str):
+    data = {
+        "code": code,
+        "client_id": environ.get('GOOGLE_CLIENT_ID'),
+        "client_secret": environ.get('GOOGLE_CLIENT_SECRET'),
+        "redirect_uri": environ.get('GOOGLE_REDIRECT_LOGIN_URI'),
+        "grant_type": "authorization_code",
+    }
+
+    response = httpx.post("https://oauth2.googleapis.com/token", data=data)
+
+    if response.status_code == 200:
+        # Handle successful login and redirect to frontend
+        access_token = response.json()["access_token"]
+        # Add your custom logic here to log in the user and create a session
+        # For example, store the access_token in a session cookie and use it for authentication
+        redirect_url = "http://localhost:3000"  # Change to your frontend URL
+        return RedirectResponse(url=redirect_url)
+
+    raise HTTPException(status_code=401, detail="Google OAuth login failed")
+
+
+@router.get('/users/auth/google-auth-register/callback')
+def google_oauth_register_callback(code: str):
+    data = {
+        "code": code,
+        "client_id": environ.get('GOOGLE_CLIENT_ID'),
+        "client_secret": environ.get('GOOGLE_CLIENT_SECRET'),
+        "redirect_uri": environ.get('GOOGLE_REDIRECT_LOGIN_URI'),
+        "grant_type": "authorization_code",
+    }
+
+    response = httpx.post("https://oauth2.googleapis.com/token", data=data)
+
+    if response.status_code == 200:
+        # Handle successful login and redirect to frontend
+        access_token = response.json()["access_token"]
+        # Add your custom logic here to log in the user and create a session
+        # For example, store the access_token in a session cookie and use it for authentication
+        redirect_url = "http://localhost:3000"  # Change to your frontend URL
+        return RedirectResponse(url=redirect_url)
+
+    raise HTTPException(status_code=401, detail="Google OAuth login failed")
