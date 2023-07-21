@@ -1,3 +1,4 @@
+from sqlalchemy import and_
 from typing import Annotated
 from os import environ
 
@@ -59,7 +60,7 @@ def login(
 ):
     try:
         user = db.query(User).filter(
-            User.username == form_data.username
+            User.email == form_data.email
         ).first()
 
         if not user or not Hash.verify(form_data.password, user.password):
@@ -69,7 +70,7 @@ def login(
                 headers={'WWW-Authenticate': 'Bearer'},
             )
 
-        access_token = Auth.create_access_token(data={'sub': user.username})
+        access_token = Auth.create_access_token(data={'sub': user.email})
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={'access_token': access_token, 'token_type': 'bearer'},
@@ -127,14 +128,13 @@ def update_profile(request: Request, id: int, user: updateUserSchema):
 
 
 @router.get("/users/auth/google-login")
-def initiate_google_oauth():
-    google_auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={environ('GOOGLE_CLIENT_ID')}&redirect_uri={environ('GOOGLE_REDIRECT_LOGIN_URI')}&response_type=code&scope=openid%20profile%20email"
-
+def initiate_google_oauth_login():
+    google_auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={environ.get('GOOGLE_CLIENT_ID')}&redirect_uri={environ.get('GOOGLE_REDIRECT_LOGIN_URI')}&response_type=code&scope=openid%20profile%20email"
+    print(google_auth_url)
     return RedirectResponse(url=google_auth_url)
 
 
-
-@router.get('/users/auth/google-auth-login/callback')
+@router.get('/users/auth/google-login/callback')
 def google_oauth_login_callback(code: str):
     data = {
         "code": code,
@@ -145,16 +145,57 @@ def google_oauth_login_callback(code: str):
     }
 
     response = httpx.post("https://oauth2.googleapis.com/token", data=data)
-
     if response.status_code == 200:
-        # Handle successful login and redirect to frontend
         access_token = response.json()["access_token"]
-        # Add your custom logic here to log in the user and create a session
-        # For example, store the access_token in a session cookie and use it for authentication
-        redirect_url = "http://localhost:3000"  # Change to your frontend URL
-        return RedirectResponse(url=redirect_url)
 
-    raise HTTPException(status_code=401, detail="Google OAuth login failed")
+        # Fetch user info using the access token from userinfo endpoint
+        userinfo_response = httpx.get(
+            "https://www.googleapis.com/oauth2/v3/userinfo",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        if userinfo_response.status_code == 200:
+            userinfo = userinfo_response.json()
+            user_email = userinfo.get("email")
+
+            if user_email is not None:
+                try:
+                    user = db.query(User).filter(
+                        and_(User.email == user_email, User.google_auth == 0)
+                    ).first()
+
+                    if not user:
+                        return JSONResponse(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            content={'detail': 'Invalid Credentials'},
+                            headers={'WWW-Authenticate': 'Bearer'},
+                        )
+
+                    access_token = Auth.create_access_token(
+                        data={'sub': user.email})
+                    return JSONResponse(
+                        status_code=status.HTTP_200_OK,
+                        content={
+                            'access_token': access_token,
+                            'token_type': 'bearer'
+                        },
+                    )
+                except UnknownHashError as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=str(e),
+                    )
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail=str(e),
+                    )
+        else:
+            raise HTTPException(
+                status_code=401, detail="Failed to fetch user info")
+    else:
+        raise HTTPException(
+            status_code=401, detail="Google OAuth login failed")
 
 
 @router.get('/users/auth/google-auth-register/callback')
