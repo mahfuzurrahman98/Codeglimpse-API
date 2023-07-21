@@ -14,7 +14,7 @@ class Snippet(Base):
     content = Column(Text, nullable=False)
     language = Column(Integer, ForeignKey('programming_languages.id'))
     visibility = Column(SmallInteger, nullable=False)
-    share_with = Column(Text, nullable=True)
+    pass_code = Column(String(10), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
