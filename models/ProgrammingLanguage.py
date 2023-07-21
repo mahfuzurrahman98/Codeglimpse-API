@@ -10,7 +10,7 @@ class ProgrammingLanguage(Base):
     __tablename__ = 'programming_languages'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
-    alt_name = Column(String(50), nullable=True)
+    ext = Column(String(50), nullable=True)
     active = Column(SmallInteger, nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
