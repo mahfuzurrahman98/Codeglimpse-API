@@ -8,7 +8,7 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
-    username = Column(String(15), unique=True, nullable=True)
+    username = Column(String(15), unique=True, nullable=False)
     email = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=True)
     google_auth = Column(SmallInteger, nullable=True)

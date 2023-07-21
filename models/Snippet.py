@@ -11,10 +11,12 @@ class Snippet(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String(50), nullable=False)
     title = Column(String(50), nullable=False)
-    content = Column(Text, nullable=False)
-    language = Column(Integer, ForeignKey('programming_languages.id'))
+    source_code = Column(Text, nullable=False)
+    language = Column(SmallInteger, nullable=False)
     visibility = Column(SmallInteger, nullable=False)
-    pass_code = Column(String(10), nullable=True)
+    pass_code = Column(SmallInteger, nullable=False, default=24)
+    theme = Column(String(10), nullable=False, default='monokai')
+    font_size = Column(String(10), nullable=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
@@ -25,8 +27,6 @@ class Snippet(Base):
     )
     deleted_at = Column(TIMESTAMP, nullable=True)
 
-    programming_language = relationship(
-        'ProgrammingLanguage', back_populates='snippets')
     user = relationship('User', back_populates='snippets')
 
     def serialize(self):
@@ -34,7 +34,7 @@ class Snippet(Base):
             'id': self.id,
             'uid': self.uid,
             'title': self.title,
-            'content': self.content,
+            'source_code': self.content,
             'language': self.programming_language.name,
             'visibility': self.visibility,
             'owner': self.user.name,
@@ -42,12 +42,8 @@ class Snippet(Base):
         }
 
         if self.visibility == 2:
-            shared_with_users = []
-            for user_id in self.share_with.split(','):
-                shared_with_users.append(
-                    db.query(User).get(user_id).serialize())
-            _snippet['shared_with'] = shared_with_users
-
+            _snippet['pass_code'] = self.pass_code
+        
         _snippet['created_at'] = str(self.created_at)
         _snippet['updated_at'] = str(self.updated_at)
         return _snippet
