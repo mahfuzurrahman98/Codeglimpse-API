@@ -14,9 +14,9 @@ class Snippet(Base):
     source_code = Column(Text, nullable=False)
     language = Column(SmallInteger, nullable=False)
     visibility = Column(SmallInteger, nullable=False)
-    pass_code = Column(SmallInteger, nullable=False, default=24)
+    pass_code = Column(SmallInteger, nullable=True)
     theme = Column(String(10), nullable=False, default='monokai')
-    font_size = Column(String(10), nullable=True)
+    font_size = Column(SmallInteger, nullable=False, default=14)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
@@ -37,13 +37,15 @@ class Snippet(Base):
             'source_code': self.content,
             'language': self.programming_language.name,
             'visibility': self.visibility,
+            'theme': self.theme,
+            'font_size': self.font_size,
             'owner': self.user.name,
 
         }
 
         if self.visibility == 2:
             _snippet['pass_code'] = self.pass_code
-        
+
         _snippet['created_at'] = str(self.created_at)
         _snippet['updated_at'] = str(self.updated_at)
         return _snippet
