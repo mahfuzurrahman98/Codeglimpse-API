@@ -17,11 +17,16 @@ Base.metadata.create_all(engine)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request, exc):
     error_messages = {}
+    status_code = 422
     for error in exc.errors():
-        field = error['loc'][1]
-        error_messages[field] = error['msg']
+        if len(error['loc']) > 1:
+            error_messages[error['loc'][1]] = error['msg']
+        else:
+            status_code = 415
+            error_messages[error['loc'][0]] = error['msg']
+
     return JSONResponse(
-        status_code=422,
+        status_code=status_code,
         content=jsonable_encoder({'detail': error_messages}),
     )
 
