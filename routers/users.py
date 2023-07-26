@@ -12,7 +12,7 @@ from passlib.exc import UnknownHashError
 
 from database import db
 from models.User import User
-from schemas.UserSchema import createUserSchema, updateUserSchema
+from schemas.UserSchema import createUserSchema, updateUserSchema, loginFormSchema
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
 from validators.userValidator import check_existing_user
@@ -58,7 +58,7 @@ def register(
 
 @router.post('/users/auth/login')
 def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    form_data: Annotated[loginFormSchema, Depends()]
 ):
     try:
         user = db.query(User).filter(
