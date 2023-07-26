@@ -31,8 +31,8 @@ async def validation_exception_handler(request, exc):
     )
 
 
-app.include_router(snippets.router)
-app.include_router(users.router)
-app.include_router(languages.router)
+app.include_router(snippets.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
+app.include_router(languages.router, prefix="/api/v1")
 # app.include_router(seed.router)
 # app.middleware('http')(authenticate)
