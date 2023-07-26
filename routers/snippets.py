@@ -20,11 +20,13 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
         new_snippet = Snippet(
             uid=str(uuid4()),
             title=snippet.title,
-            content=snippet.content,
+            source_code=snippet.source_code,
             language=snippet.language,
             visibility=snippet.visibility,
-            user_id=request.state.user.get('id'),
-            share_with=snippet.share_with if snippet.visibility == 2 else None
+            pass_code=snippet.pass_code if snippet.pass_code is not None else None,
+            theme=snippet.theme if snippet.theme is not None else 'monokai',
+            font_size=snippet.font_size if snippet.font_size is not None else 14,
+            user_id=request.state.user.get('id')
         )
         db.add(new_snippet)
         db.commit()
@@ -38,9 +40,12 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
                         'id': new_snippet.id,
                         'uid': new_snippet.uid,
                         'title': new_snippet.title,
-                        'content': new_snippet.content,
+                        'source_code': new_snippet.source_code,
+                        'language': new_snippet.programming_language.name,
                         'visibility': new_snippet.visibility,
-                        'language': new_snippet.programming_language.name
+                        'pass_code': new_snippet.pass_code,
+                        'theme': new_snippet.theme,
+                        'font_size': new_snippet.font_size
                     }
                 }
             }
