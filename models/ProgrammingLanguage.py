@@ -18,8 +18,6 @@ class ProgrammingLanguage(Base):
         server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
     )
 
-    snippets = relationship('Snippet', back_populates='programming_language')
-
     def serialize(self):
         return {
             'id': self.id,
