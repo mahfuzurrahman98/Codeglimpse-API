@@ -3,6 +3,20 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, field_validator
 
 
+class loginFormSchema(BaseModel):
+    email: EmailStr
+    password: str
+
+    @field_validator('password')
+    def validate_password(cls, value):
+        value = value.strip()
+        if ' ' in value:
+            raise ValueError('Password cannot contain spaces')
+        if len(value) < 6:
+            raise ValueError('Password must be at least 6 characters')
+        return value
+
+
 class createUserSchema(BaseModel):
     name: str
     email: EmailStr
@@ -15,7 +29,7 @@ class createUserSchema(BaseModel):
         if value == '':
             raise ValueError('Name cannot be blank')
         return value
-    
+
     @field_validator('username')
     def validate_blank_username_field(cls, value):
         value = value.strip()
