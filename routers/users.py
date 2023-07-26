@@ -1,24 +1,22 @@
-from sqlalchemy import and_
-from typing import Annotated
 from os import environ
+from typing import Annotated
 
+import httpx
 from dotenv import load_dotenv
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError
 from passlib.exc import UnknownHashError
+from sqlalchemy import and_
 
 from database import db
 from models.User import User
-from schemas.UserSchema import createUserSchema, updateUserSchema, loginFormSchema
+from schemas.UserSchema import (createUserSchema, loginFormSchema,
+                                updateUserSchema)
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
 from validators.userValidator import check_existing_user
-
-import httpx
-
 
 load_dotenv()
 router = APIRouter()
@@ -58,7 +56,7 @@ def register(
 
 @router.post('/users/auth/login')
 def login(
-    form_data: Annotated[loginFormSchema, Depends()]
+    form_data: loginFormSchema
 ):
     try:
         user = db.query(User).filter(
