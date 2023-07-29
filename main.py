@@ -7,8 +7,7 @@ from fastapi.responses import JSONResponse
 
 from database import Base, engine
 from middlewares import authenticate
-from routers import languages, snippets, users
-from seeders import seed
+from routers import snippets, users
 
 app = FastAPI()
 Base.metadata.create_all(engine)
@@ -33,6 +32,4 @@ async def validation_exception_handler(request, exc):
 
 app.include_router(snippets.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
-app.include_router(languages.router, prefix="/api/v1")
-# app.include_router(seed.router)
-# app.middleware('http')(authenticate)
+app.middleware('http')(authenticate)
