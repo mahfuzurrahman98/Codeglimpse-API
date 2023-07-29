@@ -4,6 +4,14 @@ from sqlalchemy.orm import relationship
 
 from database import Base, db
 from models.User import User
+from lib.data.programming_languages import programming_languages
+
+
+def get_language_name(ext):
+    for lang in programming_languages:
+        if lang['ext'] == ext:
+            return lang['name']
+    return None
 
 
 class Snippet(Base):
@@ -12,7 +20,7 @@ class Snippet(Base):
     uid = Column(String(50), unique=True, nullable=False)
     title = Column(String(50), nullable=False)
     source_code = Column(Text, nullable=False)
-    language = Column(SmallInteger, nullable=False)
+    language = Column(String(10), nullable=False)
     tags = Column(String(255), nullable=True)
     visibility = Column(SmallInteger, nullable=False)
     pass_code = Column(String(6), nullable=True)
@@ -35,8 +43,8 @@ class Snippet(Base):
             'id': self.id,
             'uid': self.uid,
             'title': self.title,
-            'source_code': self.content,
-            'language': self.programming_language.name,
+            'source_code': self.source_code,
+            'language': get_language_name(self.language),
             'visibility': self.visibility,
             'theme': self.theme,
             'font_size': self.font_size,

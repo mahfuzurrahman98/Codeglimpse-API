@@ -6,13 +6,12 @@ ext_list = [lang['ext'] for lang in programming_languages]
 
 
 class createSnippetSchema(BaseModel):
-    print(ext_list)
     title: str
     source_code: str
     language: str
-    tags: Optional[str]
+    tags: Optional[str] = None
     visibility: int
-    pass_code: Optional[str]
+    pass_code: Optional[str] = None
     theme: str
     font_size: int
 
@@ -24,7 +23,7 @@ class createSnippetSchema(BaseModel):
         return value
 
     @field_validator('source_code')
-    def validate_blank_content_field(cls, value):
+    def validate_blank_source_code_field(cls, value):
         value = value.strip()
         if value == '':
             raise ValueError('Source code cannot be blank')

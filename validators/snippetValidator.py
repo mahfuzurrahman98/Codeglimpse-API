@@ -45,21 +45,6 @@ def check_protected_snippet(request: Request, snippet: Snippet):
 
 
 def validate_new_snippet(request: Request, snippet: createSnippetSchema):
-    snippet.title = snippet.title.strip()
-    snippet.content = snippet.content.strip()
-    snippet.share_with = snippet.share_with.strip() if snippet.share_with else None
-
-    conflicting_snippet = db.query(Snippet).filter(
-        Snippet.title == snippet.title
-    ).first()
-    if conflicting_snippet:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Snippet with this title already exist'
-        )
-
-    if (snippet.visibility == 2):
-        check_protected_snippet(request, snippet)
 
     return snippet
 

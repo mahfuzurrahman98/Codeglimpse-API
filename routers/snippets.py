@@ -1,8 +1,8 @@
 from typing import Annotated
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from utils import UID
 
 from database import db
 from models.Snippet import Snippet
@@ -10,18 +10,16 @@ from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from validators.snippetValidator import (validate_delete_snippet,
                                          validate_new_snippet,
                                          validate_update_snippet)
-from lib.data import programming_languages
 
 router = APIRouter()
 
 
 @router.post('/snippets')
 def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
-    print(programming_languages)
-    return
+
     try:
         new_snippet = Snippet(
-            uid=str(uuid4()),
+            uid=UID.generate(),
             title=snippet.title,
             source_code=snippet.source_code,
             language=snippet.language,
@@ -35,7 +33,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
         db.commit()
 
         return JSONResponse(
-            status_code=200,
+            status_code=status.HTTP_201_CREATED,
             content={
                 'detail': 'Snippet create successfully',
                 'data': new_snippet.serialize()
