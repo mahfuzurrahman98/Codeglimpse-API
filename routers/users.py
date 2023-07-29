@@ -5,8 +5,6 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse, RedirectResponse
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import JWTError
 from passlib.exc import UnknownHashError
 from sqlalchemy import and_
 
@@ -41,12 +39,7 @@ def register(
 
         resp = {
             'detail': 'User created',
-            'data': {
-                'id': new_user.id,
-                'name': new_user.name,
-                'username': new_user.username,
-                'email': new_user.email,
-            }
+            'data': new_user.serialize()
         }
         return JSONResponse(status_code=201, content=resp)
 
@@ -66,15 +59,32 @@ def login(
         if not user or not Hash.verify(form_data.password, user.password):
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                content={'detail': 'Invalid Credentials'},
-                headers={'WWW-Authenticate': 'Bearer'},
+                content={'detail': 'Invalid Credentials'}
             )
 
         access_token = Auth.create_access_token(data={'sub': user.email})
-        return JSONResponse(
+        refresh_token = Auth.create_refresh_token(data={'sub': user.email})
+
+        response = JSONResponse(
             status_code=status.HTTP_200_OK,
-            content={'access_token': access_token, 'token_type': 'bearer'},
+            content={
+                'access_token': access_token,
+                'token_type': 'bearer'
+            },
+            headers={'WWW-Authenticate': 'Bearer'},
         )
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            max_age=10080*60,
+            expires=10080*60,
+            path='/refresh-token',
+            secure=False,
+            httponly=True,
+            samesite="none",
+        )
+        return response
+
     except UnknownHashError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -135,7 +145,8 @@ def google_oauth_login_callback(code: str):
                         )
 
                     access_token = Auth.create_access_token(
-                        data={'sub': user.email})
+                        data={'sub': user.email}
+                    )
                     return JSONResponse(
                         status_code=status.HTTP_200_OK,
                         content={

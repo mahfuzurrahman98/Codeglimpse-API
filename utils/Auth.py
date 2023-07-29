@@ -20,7 +20,24 @@ def create_access_token(data: dict):
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(
         to_encode,
-        environ.get('SECRET_KEY'),
+        environ.get('REFRESH_TOKEN_SECRET'),
+        algorithm=environ.get('ALGORITHM')
+    )
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+
+    expires_delta = timedelta(
+        minutes=int(environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'))
+    )
+    expire = datetime.utcnow() + expires_delta if expires_delta else datetime.utcnow()
+
+    to_encode.update({'exp': expire})
+    encoded_jwt = jwt.encode(
+        to_encode,
+        environ.get('REFRESH_TOKEN_SECRET'),
         algorithm=environ.get('ALGORITHM')
     )
     return encoded_jwt
@@ -30,7 +47,7 @@ def decode(token):
     try:
         payload = jwt.decode(
             token.replace('Bearer ', ''),
-            environ.get('SECRET_KEY'),
+            environ.get('REFRESH_TOKEN_SECRET'),
             algorithms=[environ.get('ALGORITHM')]
         )
         return payload
