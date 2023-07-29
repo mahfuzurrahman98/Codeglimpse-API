@@ -10,12 +10,15 @@ from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from validators.snippetValidator import (validate_delete_snippet,
                                          validate_new_snippet,
                                          validate_update_snippet)
+from lib.data import programming_languages
 
 router = APIRouter()
 
 
 @router.post('/snippets')
 def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
+    print(programming_languages)
+    return
     try:
         new_snippet = Snippet(
             uid=str(uuid4()),
@@ -35,110 +38,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             status_code=200,
             content={
                 'detail': 'Snippet create successfully',
-                'data': {
-                    'snippet': {
-                        'id': new_snippet.id,
-                        'uid': new_snippet.uid,
-                        'title': new_snippet.title,
-                        'source_code': new_snippet.source_code,
-                        'language': new_snippet.programming_language.name,
-                        'visibility': new_snippet.visibility,
-                        'pass_code': new_snippet.pass_code,
-                        'theme': new_snippet.theme,
-                        'font_size': new_snippet.font_size
-                    }
-                }
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get('/snippets/{id}')
-def show_by_id(request: Request, id: int):
-    try:
-        snippet = db.query(Snippet).filter(
-            Snippet.id == id
-        ).first()
-
-        if snippet is None:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    'detail': 'Snippets not found',
-                }
-            )
-
-        if (snippet.user_id != request.state.user.get('id')):
-            share_with_ids = snippet.share_with.split(',')
-            if (
-                    snippet.visibility == 1 or
-                    (
-                        snippet.visibility == 2 and
-                        request.state.user.get('id') not in share_with_ids
-                    )
-            ):
-                return JSONResponse(
-                    status_code=403,
-                    content={
-                        'detail': 'Access denied',
-                    }
-                )
-
-        snippet = snippet.serialize()
-        return JSONResponse(
-            status_code=200,
-            content={
-                'detail': 'Snipppet fetched successfully',
-                'data': {
-                    'snippet': snippet
-                }
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get('/snippets/uuid/{uid}')
-def show(request: Request, uid: str):
-    try:
-        snippet = db.query(Snippet).filter(
-            Snippet.uid == uid
-        ).first()
-
-        if snippet is None:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    'detail': 'Snippets not found',
-                }
-            )
-
-        if (snippet.user_id != request.state.user.get('id')):
-            share_with_ids = snippet.share_with.split(',')
-            # if snippet is private or it is protected but not shared with the user
-            if (
-                    snippet.visibility == 1 or
-                    (
-                        snippet.visibility == 2 and
-                        request.state.user.get('id') not in share_with_ids
-                    )
-            ):
-                return JSONResponse(
-                    status_code=403,
-                    content={
-                        'detail': 'Access denied',
-                    }
-                )
-
-        snippet = snippet.serialize()
-        return JSONResponse(
-            status_code=200,
-            content={
-                'detail': 'Snipppet fetched successfully',
-                'data': {
-                    'snippet': snippet
-                }
+                'data': new_snippet.serialize()
             }
         )
     except Exception as e:
@@ -172,6 +72,71 @@ def index(request: Request):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get('/snippets/public')
+def get_public_snippets(request: Request):
+    try:
+        snippets = db.query(Snippet).filter(
+            Snippet.visibility == 1
+        ).all()
+
+        if len(snippets) == 0:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    'detail': 'No snippets found',
+                }
+            )
+
+        snippets = [snippet.serialize() for snippet in snippets]
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppets fetched successfully',
+                'data': {
+                    'snippets': snippets
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get('/snippets/uid}')
+def show(request: Request, uid: str):
+    try:
+        snippet = db.query(Snippet).filter(
+            Snippet.uid == uid
+        ).first()
+
+        if snippet is None:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    'detail': 'Snippets not found',
+                }
+            )
+
+        if (snippet.user_id != request.state.user.get('id') and snippet.visibility == 2):
+            raise HTTPException(
+                status_code=403, detail='Access denied, this snippet is private')
+
+        snippet = snippet.serialize()
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppet fetched successfully',
+                'data': {
+                    'snippet': snippet
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# -----------------------
 
 
 @router.put('/snippets/{id}')

@@ -1,21 +1,20 @@
-from enum import Enum
 from typing import Optional
-
+from lib.data.programming_languages import programming_languages
 from pydantic import BaseModel, field_validator
 
-
-class VisibilityEnum(Enum):
-    ONE = 1
-    TWO = 2
-    THREE = 3
+ext_list = [lang['ext'] for lang in programming_languages]
 
 
 class createSnippetSchema(BaseModel):
+    print(ext_list)
     title: str
-    content: str
-    language: int
-    visibility: VisibilityEnum
-    share_with: Optional[str]
+    source_code: str
+    language: str
+    tags: Optional[str]
+    visibility: int
+    pass_code: Optional[str]
+    theme: str
+    font_size: int
 
     @field_validator('title')
     def validate_blank_title_field(cls, value):
@@ -24,11 +23,30 @@ class createSnippetSchema(BaseModel):
             raise ValueError('Title cannot be blank')
         return value
 
-    @field_validator('content')
+    @field_validator('source_code')
     def validate_blank_content_field(cls, value):
         value = value.strip()
         if value == '':
-            raise ValueError('Content cannot be blank')
+            raise ValueError('Source code cannot be blank')
+        return value
+
+    @field_validator('language')
+    def validate_language_field(cls, value):
+        value = value.strip()
+        if value not in ext_list:
+            raise ValueError('Invalid language')
+        return value
+
+    @field_validator('pass_code')
+    def validate_pass_code_field(cls, value, values):
+        if values.data['visibility'] == 2 and value is None:
+            raise ValueError('Pass code is mandatory')
+
+        if value is not None and not value.isalnum():
+            raise ValueError('Invalid pass code')
+
+        if value is not None and len(value) != 6:
+            raise ValueError('Pass code should be 6 characters')
         return value
 
 
@@ -36,7 +54,7 @@ class updateSnippetSchema(BaseModel):
     title: Optional[str]
     content: Optional[str]
     language: Optional[int]
-    visibility: Optional[VisibilityEnum]
+    visibility: Optional[int]
     share_with: Optional[str]
 
     @field_validator('title')
@@ -58,11 +76,4 @@ class updateSnippetSchema(BaseModel):
         value = value.strip()
         if value is not None and not isinstance(value, cls.language.type):
             raise ValueError('Invalid type for language field')
-        return value
-
-    @field_validator('share_with')
-    def validate_share_with_field(cls, value):
-        value = value.strip()
-        if value is not None and not isinstance(value, cls.share_with.type):
-            raise ValueError('Invalid type for share_with field')
         return value

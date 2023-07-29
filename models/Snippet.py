@@ -9,13 +9,14 @@ from models.User import User
 class Snippet(Base):
     __tablename__ = 'snippets'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    uid = Column(String(50), nullable=False)
+    uid = Column(String(50), unique=True, nullable=False)
     title = Column(String(50), nullable=False)
     source_code = Column(Text, nullable=False)
     language = Column(SmallInteger, nullable=False)
+    tags = Column(String(255), nullable=True)
     visibility = Column(SmallInteger, nullable=False)
-    pass_code = Column(SmallInteger, nullable=True)
-    theme = Column(String(10), nullable=False, default='monokai')
+    pass_code = Column(String(6), nullable=True)
+    theme = Column(String(25), nullable=False, default='monokai')
     font_size = Column(SmallInteger, nullable=False, default=14)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
