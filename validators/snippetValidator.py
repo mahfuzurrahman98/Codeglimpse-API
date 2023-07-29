@@ -4,6 +4,9 @@ from database import db
 from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
+from lib.data.programming_languages import programming_languages
+
+ext_list = [lang['ext'] for lang in programming_languages]
 
 
 def check_protected_snippet(request: Request, snippet: Snippet):
@@ -45,6 +48,37 @@ def check_protected_snippet(request: Request, snippet: Snippet):
 
 
 def validate_new_snippet(request: Request, snippet: createSnippetSchema):
+    snippet.title = snippet.title.strip()
+    snippet.source_code = snippet.source_code.strip()
+    snippet.language = snippet.language.strip()
+
+    if snippet.language not in ext_list:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Invalid language'
+        )
+
+    if snippet.visibility == 2:
+        if snippet.pass_code is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Pass code is mandatory'
+            )
+
+        if not snippet.pass_code.isalnum():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Invalid pass code'
+            )
+
+        if len(snippet.pass_code) != 6:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Pass code should be 6 characters'
+            )
+
+    # there will be a check for theme in future
+    # there will be a check for font_size in future
 
     return snippet
 

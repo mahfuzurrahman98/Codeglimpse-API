@@ -1,4 +1,6 @@
 from typing import Optional
+
+from fastapi import HTTPException, status
 from lib.data.programming_languages import programming_languages
 from pydantic import BaseModel, field_validator
 
@@ -19,33 +21,29 @@ class createSnippetSchema(BaseModel):
     def validate_blank_title_field(cls, value):
         value = value.strip()
         if value == '':
-            raise ValueError('Title cannot be blank')
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Title cannot be blank'
+            )
         return value
 
     @field_validator('source_code')
     def validate_blank_source_code_field(cls, value):
         value = value.strip()
         if value == '':
-            raise ValueError('Source code cannot be blank')
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Source code cannot be blank'
+            )
         return value
 
-    @field_validator('language')
-    def validate_language_field(cls, value):
-        value = value.strip()
-        if value not in ext_list:
-            raise ValueError('Invalid language')
-        return value
-
-    @field_validator('pass_code')
-    def validate_pass_code_field(cls, value, values):
-        if values.data['visibility'] == 2 and value is None:
-            raise ValueError('Pass code is mandatory')
-
-        if value is not None and not value.isalnum():
-            raise ValueError('Invalid pass code')
-
-        if value is not None and len(value) != 6:
-            raise ValueError('Pass code should be 6 characters')
+    @field_validator('visibility')
+    def validate_visibility_field(cls, value):
+        if value not in [1, 2]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Invalid visibility'
+            )
         return value
 
 
