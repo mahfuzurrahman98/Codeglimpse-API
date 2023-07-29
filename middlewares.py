@@ -28,7 +28,7 @@ async def authenticate(request: Request, call_next):
     )
 
     token = request.headers.get('Authorization')
-    print(token)
+
     if not token or not token.startswith('Bearer '):
         return token_exception
 
