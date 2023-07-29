@@ -14,7 +14,11 @@ load_dotenv()
 
 
 async def authenticate(request: Request, call_next):
-    if (request.url.path.startswith('/auth/')):
+    if ('/auth/' in request.url.path or
+        '/docs' in request.url.path or
+        '/openapi.json' in request.url.path or
+        '/snippets/public' in request.url.path or
+            request.method == 'OPTIONS'):
         return await call_next(request)
 
     token_exception = JSONResponse(
@@ -24,6 +28,7 @@ async def authenticate(request: Request, call_next):
     )
 
     token = request.headers.get('Authorization')
+    print(token)
     if not token or not token.startswith('Bearer '):
         return token_exception
 
@@ -31,13 +36,13 @@ async def authenticate(request: Request, call_next):
 
     try:
         payload = Auth.decode(token)
-        username = payload.get('sub')
-        if not username:
+        email = payload.get('sub')
+        if not email:
             raise token_exception
     except Exception:
         return token_exception
 
-    user = db.query(User).filter(User.username == username).first()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         return token_exception
 
