@@ -52,6 +52,9 @@ class Snippet(Base):
 
         }
 
+        if self.tags:
+            _snippet['tags'] = self.tags.split(',')
+
         if self.visibility == 2:
             _snippet['pass_code'] = self.pass_code
 

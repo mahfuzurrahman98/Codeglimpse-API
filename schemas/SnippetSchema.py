@@ -11,7 +11,7 @@ class createSnippetSchema(BaseModel):
     title: str
     source_code: str
     language: str
-    tags: Optional[str] = None
+    tags: Optional[list[str]] = None
     visibility: int
     pass_code: Optional[str] = None
     theme: str
@@ -83,4 +83,31 @@ class updateSnippetSchema(BaseModel):
         value = value.strip()
         if value is not None and not isinstance(value, cls.language.type):
             raise ValueError('Invalid type for language field')
+        return value
+
+
+class privateSnippetSchema(BaseModel):
+    pass_code: str
+
+    @field_validator('pass_code')
+    def validate_pass_code_field(cls, value):
+        value = value.strip()
+        if value == '':
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Pass code is mandatory'
+            )
+
+        if not value.isalnum():
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Invalid pass code'
+            )
+
+        if len(value) != 6:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Pass code must be 6 characters long'
+            )
+
         return value
