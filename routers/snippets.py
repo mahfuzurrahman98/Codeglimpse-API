@@ -6,7 +6,7 @@ from utils import UID
 
 from database import db
 from models.Snippet import Snippet
-from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
+from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema, privateSnippetSchema
 from validators.snippetValidator import (validate_delete_snippet,
                                          validate_new_snippet,
                                          validate_update_snippet)
@@ -14,6 +14,7 @@ from validators.snippetValidator import (validate_delete_snippet,
 router = APIRouter()
 
 
+# create a snippet
 @router.post('/snippets')
 def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
 
@@ -23,6 +24,9 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             title=snippet.title,
             source_code=snippet.source_code,
             language=snippet.language,
+            tags=','.join(snippet.tags)
+            if (snippet.tags and len(snippet.tags) > 0)
+            else None,
             visibility=snippet.visibility,
             pass_code=snippet.pass_code if snippet.pass_code is not None else None,
             theme=snippet.theme if snippet.theme is not None else 'monokai',
@@ -36,13 +40,16 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             status_code=status.HTTP_201_CREATED,
             content={
                 'detail': 'Snippet create successfully',
-                'data': new_snippet.serialize()
+                'data': {
+                    snippet: new_snippet.serialize()
+                }
             }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# get only your snippets
 @router.get('/snippets')
 def index(request: Request):
     try:
@@ -72,6 +79,37 @@ def index(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# get all public snippets
+@router.get('/snippets/public')
+def get_public_snippets(request: Request):
+    try:
+        snippets = db.query(Snippet).filter(
+            Snippet.visibility == 1
+        ).all()
+
+        if len(snippets) == 0:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    'detail': 'No snippets found',
+                }
+            )
+
+        snippets = [snippet.serialize() for snippet in snippets]
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppets fetched successfully',
+                'data': {
+                    'snippets': snippets
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# get a single snippet
 @router.get('/snippets/{uid}')
 def show(request: Request, uid: str):
     try:
@@ -105,28 +143,35 @@ def show(request: Request, uid: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get('/snippets/public')
-def get_public_snippets(request: Request):
+# get a private snippet with passcode
+@router.post('/snippets/private/{uid}')
+def show(request: Request, uid: str, pass_code: privateSnippetSchema):
     try:
-        snippets = db.query(Snippet).filter(
-            Snippet.visibility == 1
-        ).all()
+        snippet = db.query(Snippet).filter(
+            Snippet.uid == uid
+        ).first()
 
-        if len(snippets) == 0:
+        if snippet is None:
             return JSONResponse(
                 status_code=404,
                 content={
-                    'detail': 'No snippets found',
+                    'detail': 'Snippets not found',
                 }
             )
 
-        snippets = [snippet.serialize() for snippet in snippets]
+        if (snippet.pass_code != pass_code):
+            raise HTTPException(
+                status_code=403,
+                detail='Access denied, provide the correct passcode'
+            )
+
+        snippet = snippet.serialize()
         return JSONResponse(
             status_code=200,
             content={
-                'detail': 'Snipppets fetched successfully',
+                'detail': 'Snipppet fetched successfully',
                 'data': {
-                    'snippets': snippets
+                    'snippet': snippet
                 }
             }
         )
