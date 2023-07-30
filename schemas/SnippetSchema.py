@@ -46,6 +46,16 @@ class createSnippetSchema(BaseModel):
             )
         return value
 
+    @field_validator('theme')
+    def validate_blank_theme_field(cls, value):
+        value = value.strip()
+        if value == '':
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Theme cannot be blank'
+            )
+        return value
+
 
 class updateSnippetSchema(BaseModel):
     title: Optional[str]

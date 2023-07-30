@@ -15,7 +15,7 @@ db_password = environ.get('DB_PASSWORD')
 
 connection_string = f"mysql+mysqlconnector://{db_user}:{db_password}@{db_host}/{db_name}"
 # print(connection_string)
-engine = create_engine(connection_string, echo=False)
+engine = create_engine(connection_string, echo=True)
 
 Session = sessionmaker(bind=engine)
 db = Session()

@@ -72,36 +72,7 @@ def index(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get('/snippets/public')
-def get_public_snippets(request: Request):
-    try:
-        snippets = db.query(Snippet).filter(
-            Snippet.visibility == 1
-        ).all()
-
-        if len(snippets) == 0:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    'detail': 'No snippets found',
-                }
-            )
-
-        snippets = [snippet.serialize() for snippet in snippets]
-        return JSONResponse(
-            status_code=200,
-            content={
-                'detail': 'Snipppets fetched successfully',
-                'data': {
-                    'snippets': snippets
-                }
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get('/snippets/uid}')
+@router.get('/snippets/{uid}')
 def show(request: Request, uid: str):
     try:
         snippet = db.query(Snippet).filter(
@@ -127,6 +98,35 @@ def show(request: Request, uid: str):
                 'detail': 'Snipppet fetched successfully',
                 'data': {
                     'snippet': snippet
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get('/snippets/public')
+def get_public_snippets(request: Request):
+    try:
+        snippets = db.query(Snippet).filter(
+            Snippet.visibility == 1
+        ).all()
+
+        if len(snippets) == 0:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    'detail': 'No snippets found',
+                }
+            )
+
+        snippets = [snippet.serialize() for snippet in snippets]
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppets fetched successfully',
+                'data': {
+                    'snippets': snippets
                 }
             }
         )
