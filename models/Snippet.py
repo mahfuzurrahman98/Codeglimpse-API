@@ -24,8 +24,8 @@ class Snippet(Base):
     tags = Column(String(255), nullable=True)
     visibility = Column(SmallInteger, nullable=False)
     pass_code = Column(String(6), nullable=True)
-    theme = Column(String(25), nullable=False, default='monokai')
-    font_size = Column(SmallInteger, nullable=False, default=14)
+    theme = Column(String(25), nullable=False, server_default='monokai')
+    font_size = Column(SmallInteger, nullable=False, server_default='14')
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(

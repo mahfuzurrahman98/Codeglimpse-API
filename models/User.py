@@ -11,7 +11,7 @@ class User(Base):
     username = Column(String(15), unique=True, nullable=False)
     email = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=True)
-    google_auth = Column(SmallInteger, nullable=True)
+    google_auth = Column(SmallInteger, nullable=False, server_default='0')
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     updated_at = Column(
         TIMESTAMP,
