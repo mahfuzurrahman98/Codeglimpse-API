@@ -1,8 +1,9 @@
 from typing import Optional
 
 from fastapi import HTTPException, status
-from lib.data.programming_languages import programming_languages
 from pydantic import BaseModel, field_validator
+
+from lib.data.programming_languages import programming_languages
 
 ext_list = [lang['ext'] for lang in programming_languages]
 
@@ -59,10 +60,13 @@ class createSnippetSchema(BaseModel):
 
 class updateSnippetSchema(BaseModel):
     title: Optional[str]
-    content: Optional[str]
-    language: Optional[int]
+    source_code: Optional[str]
+    language: Optional[str]
+    tags: Optional[list[str]]
     visibility: Optional[int]
-    share_with: Optional[str]
+    passcode: Optional[str]
+    theme: Optional[str]
+    font_size: Optional[int]
 
     @field_validator('title')
     def validate_title_field(cls, value):
