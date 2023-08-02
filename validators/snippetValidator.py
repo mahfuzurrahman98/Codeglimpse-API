@@ -1,13 +1,13 @@
 from fastapi import HTTPException, Request, status
 
 from database import db
-from lib.data.programming_languages import programming_languages
+from lib.data.languages import languages
 from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from utils.helpers import tags_arr_to_str
 
-ext_list = [lang['ext'] for lang in programming_languages]
+ext_list = [lang['ext'] for lang in languages]
 
 
 def check_protected_snippet(request: Request, snippet: Snippet):

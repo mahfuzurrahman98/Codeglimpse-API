@@ -4,11 +4,11 @@ from sqlalchemy.orm import relationship
 
 from database import Base, db
 from models.User import User
-from lib.data.programming_languages import programming_languages
+from lib.data.languages import languages
 
 
 def get_language_name(ext):
-    for lang in programming_languages:
+    for lang in languages:
         if lang['ext'] == ext:
             return lang['name']
     return None

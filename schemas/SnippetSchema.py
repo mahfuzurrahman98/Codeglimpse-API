@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel, field_validator
 
-from lib.data.programming_languages import programming_languages
+from lib.data.languages import languages
 
-ext_list = [lang['ext'] for lang in programming_languages]
+ext_list = [lang['ext'] for lang in languages]
 
 
 class createSnippetSchema(BaseModel):
