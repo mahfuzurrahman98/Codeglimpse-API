@@ -3,10 +3,6 @@ from typing import Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel, field_validator
 
-from lib.data.languages import languages
-
-ext_list = [lang['ext'] for lang in languages]
-
 
 class createSnippetSchema(BaseModel):
     title: str
@@ -75,11 +71,11 @@ class updateSnippetSchema(BaseModel):
             raise ValueError('Invalid type for title field')
         return value
 
-    @field_validator('content')
+    @field_validator('source_code')
     def validate_content_field(cls, value):
         value = value.strip()
         if value is not None and not isinstance(value, cls.content.type):
-            raise ValueError('Invalid type for content field')
+            raise ValueError('Invalid type for source code field')
         return value
 
     @field_validator('language')
