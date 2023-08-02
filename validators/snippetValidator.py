@@ -2,50 +2,14 @@ from fastapi import HTTPException, Request, status
 
 from database import db
 from lib.data.languages import languages
+from lib.data.themes import themes
 from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from utils.helpers import tags_arr_to_str
 
 ext_list = [lang['ext'] for lang in languages]
-
-
-def check_protected_snippet(request: Request, snippet: Snippet):
-    if (snippet.share_with is None):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='mention the user ids'
-        )
-
-    share_with_ids = snippet.share_with.strip().split(',')
-    # print(share_with_ids)
-    if (len(share_with_ids) == 0):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='mention the user ids by comma separated'
-        )
-
-    for user_id in share_with_ids:
-        try:
-            int(user_id)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='each user id must be an integer'
-            )
-
-    for user_id in share_with_ids:
-        if (request.state.user.get('id') == int(user_id)):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='You don\'t need to share with yourself'
-            )
-        user = db.query(User).filter(User.id == user_id).first()
-        if (user is None):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f'{user_id} not a valid user id'
-            )
+theme_list = [theme['value'] for theme in themes]
 
 
 def validate_new_snippet(request: Request, snippet: createSnippetSchema):
@@ -57,6 +21,18 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail='Invalid language'
+        )
+
+    if snippet.theme not in theme_list:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Invalid theme'
+        )
+
+    if snippet.font_size not in [14, 16, 18, 20, 22, 24]:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail='Invalid font size'
         )
 
     if snippet.visibility == 2:
@@ -82,9 +58,6 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
         snippet.tags = ','.join(snippet.tags)
     else:
         snippet.tags = None
-
-    # there will be a check for theme in future
-    # there will be a check for font_size in future
 
     return snippet
 
