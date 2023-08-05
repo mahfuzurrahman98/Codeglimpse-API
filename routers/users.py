@@ -68,8 +68,12 @@ def login(
         response = JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
-                'access_token': access_token,
-                'token_type': 'bearer'
+                'detail': 'Login successful',
+                'data': {
+                    'user': user.serialize(),
+                    'access_token': access_token,
+                    'token_type': 'bearer'
+                }
             },
             headers={'WWW-Authenticate': 'Bearer'},
         )
@@ -78,7 +82,7 @@ def login(
             value=refresh_token,
             max_age=10080*60,
             expires=10080*60,
-            path='/refresh-token',
+            path='/api/v1/users/auth/refreshtoken',
             secure=False,
             httponly=True,
             samesite="none",
@@ -254,3 +258,9 @@ def google_oauth_register_callback(code: str):
     else:
         raise HTTPException(
             status_code=401, detail="Google OAuth failed")
+
+
+@router.post('/users/auth/refreshtoken')
+def refresh_token(request: Request):
+    refresh_token = request.cookies.get('refresh_token')
+    print(refresh_token)
