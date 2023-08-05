@@ -1,9 +1,8 @@
-from os import environ
-
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
 from middlewares import authenticate
@@ -11,6 +10,14 @@ from routers import snippets, users
 
 app = FastAPI()
 Base.metadata.create_all(engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],  # Allow all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 
 @app.exception_handler(RequestValidationError)
