@@ -1,4 +1,4 @@
-themes = {
+themes = [
     {'name': 'GitHub', 'value': 'github'},
     {'name': 'Chrome', 'value': 'chrome'},
     {'name': 'Xcode', 'value': 'xcode'},
@@ -8,4 +8,4 @@ themes = {
     {'name': 'Dracula', 'value': 'dracula'},
     {'name': 'Cobalt', 'value': 'cobalt'},
     {'name': 'Gob', 'value': 'gob'},
-}
+]
