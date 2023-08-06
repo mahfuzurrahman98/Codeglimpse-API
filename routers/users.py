@@ -63,8 +63,8 @@ def login(
             )
 
         access_token = Auth.create_access_token(data={'sub': user.email})
+        print(access_token)
         refresh_token = Auth.create_refresh_token(data={'sub': user.email})
-
         response = JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
@@ -77,27 +77,29 @@ def login(
             },
             headers={'WWW-Authenticate': 'Bearer'},
         )
+        # print(response)
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
             max_age=10080*60,
             expires=10080*60,
-            path='/api/v1/users/auth/refreshtoken',
+            # path='/api/v1/users/auth/refreshtoken',
+            path='/',
             secure=False,
             httponly=True,
-            samesite="none",
+            samesite="strict",
         )
         return response
 
     except UnknownHashError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
+            detail=str(e)+' xx',
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e),
+            detail=str(e) + ' x2x',
         )
 
 
@@ -262,5 +264,78 @@ def google_oauth_register_callback(code: str):
 
 @router.post('/users/auth/refreshtoken')
 def refresh_token(request: Request):
-    refresh_token = request.cookies.get('refresh_token')
-    print(refresh_token)
+    print("we are here")
+    token_exception = JSONResponse(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        content={'detail': 'Unauthorized'},
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
+
+    token = request.cookies.get('refresh_token')
+    print(token)
+
+    if not token:
+        return token_exception
+
+    try:
+        payload = Auth.decode(token)
+        email = payload.get('sub')
+        if not email:
+            raise token_exception
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise token_exception
+    except Exception:
+        return token_exception
+
+    try:
+        access_token = Auth.create_access_token(data={'sub': user.email})
+        refresh_token = Auth.create_refresh_token(data={'sub': user.email})
+
+        response = JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                'detail': 'Authentication successful',
+                'data': {
+                    'user': user.serialize(),
+                    'access_token': access_token,
+                    'token_type': 'bearer'
+                }
+            },
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            max_age=10080*60,
+            expires=10080*60,
+            # path='/api/v1/users/auth/refreshtoken',
+            path='/',
+            secure=False,
+            httponly=True,
+            samesite="strict",
+        )
+        return response
+
+    except UnknownHashError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )
+
+
+@router.post('/users/auth/logout')
+def logout():
+    response = JSONResponse(
+        status_code=status.HTTP_204_NO_CONTENT,
+        content={
+            'detail': 'Logout successful',
+        }
+    )
+    response.delete_cookie('refresh_token')
+    return response
