@@ -71,8 +71,7 @@ def login(
                 'detail': 'Login successful',
                 'data': {
                     'user': user.serialize(),
-                    'access_token': access_token,
-                    'token_type': 'bearer'
+                    'access_token': access_token
                 }
             },
             headers={'WWW-Authenticate': 'Bearer'},
@@ -156,8 +155,7 @@ def google_oauth_login_callback(code: str):
                     return JSONResponse(
                         status_code=status.HTTP_200_OK,
                         content={
-                            'access_token': access_token,
-                            'token_type': 'bearer'
+                            'access_token': access_token
                         },
                     )
                 except UnknownHashError as e:
@@ -264,7 +262,6 @@ def google_oauth_register_callback(code: str):
 
 @router.post('/users/auth/refreshtoken')
 def refresh_token(request: Request):
-    print("we are here")
     token_exception = JSONResponse(
         status_code=status.HTTP_401_UNAUTHORIZED,
         content={'detail': 'Unauthorized'},
@@ -290,32 +287,18 @@ def refresh_token(request: Request):
 
     try:
         access_token = Auth.create_access_token(data={'sub': user.email})
-        refresh_token = Auth.create_refresh_token(data={'sub': user.email})
 
-        response = JSONResponse(
+        return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 'detail': 'Authentication successful',
                 'data': {
                     'user': user.serialize(),
                     'access_token': access_token,
-                    'token_type': 'bearer'
                 }
             },
             headers={'WWW-Authenticate': 'Bearer'},
         )
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            max_age=10080*60,
-            expires=10080*60,
-            # path='/api/v1/users/auth/refreshtoken',
-            path='/',
-            secure=False,
-            httponly=True,
-            samesite="strict",
-        )
-        return response
 
     except UnknownHashError as e:
         raise HTTPException(
