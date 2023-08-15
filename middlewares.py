@@ -18,6 +18,8 @@ async def authenticate(request: Request, call_next):
         '/docs' in request.url.path or
         '/openapi.json' in request.url.path or
         '/snippets/public' in request.url.path or
+        '/data/languages' in request.url.path or
+        '/data/themes' in request.url.path or
             request.method == 'OPTIONS'):
         return await call_next(request)
 
