@@ -33,7 +33,6 @@ languages = [
   { 'ext': 'txt', 'name': 'Plain Text', 'mode': 'plain_text' },
   { 'ext': 'ps1', 'name': 'PowerShell', 'mode': 'powershell' },
   { 'ext': 'py', 'name': 'Python', 'mode': 'python' },
-  { 'ext': 'jsx', 'name': 'JSX', 'mode': 'jsx' },
   { 'ext': 'r', 'name': 'R', 'mode': 'r' },
   { 'ext': 'rb', 'name': 'Ruby', 'mode': 'ruby' },
   { 'ext': 'rs', 'name': 'Rust', 'mode': 'rust' },
