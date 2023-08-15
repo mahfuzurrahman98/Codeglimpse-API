@@ -79,11 +79,15 @@ def get_my_snippets(request: Request):
 
 # get all public snippets
 @router.get('/snippets/public')
-def index(request: Request):
+def index(
+    request: Request,
+    page: int = 1,
+    limit: int = 10,
+):
     try:
         snippets = db.query(Snippet).filter(
             Snippet.visibility == 1
-        ).all()
+        ).limit(limit).offset((page - 1) * limit).all()
 
         if len(snippets) == 0:
             return JSONResponse(
