@@ -39,7 +39,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             content={
                 'detail': 'Snippet create successfully',
                 'data': {
-                    snippet: new_snippet.serialize()
+                    'snippet': new_snippet.serialize()
                 }
             }
         )
@@ -78,7 +78,7 @@ def get_my_snippets(request: Request):
 
 
 # get all public snippets
-@router.get('/snippets')
+@router.get('/snippets/public')
 def index(request: Request):
     try:
         snippets = db.query(Snippet).filter(

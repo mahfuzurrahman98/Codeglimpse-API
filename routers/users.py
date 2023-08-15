@@ -80,8 +80,8 @@ def login(
         response.set_cookie(
             key='refresh_token',
             value=refresh_token,
-            max_age=10080*60,
-            expires=10080*60,
+            max_age=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+            expires=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
             # path='/api/v1/users/auth/refreshtoken',
             path='/',
             secure=False,
