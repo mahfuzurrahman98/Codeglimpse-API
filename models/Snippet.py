@@ -1,5 +1,5 @@
 from sqlalchemy import (TIMESTAMP, Column, Enum, ForeignKey, Integer,
-                        SmallInteger, String, Text, text)
+                        SmallInteger, String, Text, func)
 from sqlalchemy.orm import relationship
 
 from database import Base, db
@@ -27,12 +27,13 @@ class Snippet(Base):
     theme = Column(String(25), nullable=False, server_default='monokai')
     font_size = Column(SmallInteger, nullable=False, server_default='14')
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
     updated_at = Column(
         TIMESTAMP,
-        server_default=text(
-            'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'
-        )
+        nullable=True,
+        default=None,
+        onupdate=func.now(),
+        server_onupdate=func.now()
     )
     deleted_at = Column(TIMESTAMP, nullable=True)
 

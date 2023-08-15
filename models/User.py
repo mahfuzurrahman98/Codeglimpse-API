@@ -1,4 +1,4 @@
-from sqlalchemy import TIMESTAMP, Column, Integer, SmallInteger, String, text
+from sqlalchemy import TIMESTAMP, Column, Integer, SmallInteger, String, text, func
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -12,10 +12,13 @@ class User(Base):
     email = Column(String(50), unique=True, nullable=False)
     password = Column(String(255), nullable=True)
     google_auth = Column(SmallInteger, nullable=False, server_default='0')
-    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+    created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
     updated_at = Column(
         TIMESTAMP,
-        server_default=text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
+        nullable=True,
+        default=None,
+        onupdate=func.now(),
+        server_onupdate=func.now()
     )
 
     snippets = relationship('Snippet', back_populates='user')
