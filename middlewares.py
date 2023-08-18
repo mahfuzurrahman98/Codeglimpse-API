@@ -14,13 +14,15 @@ load_dotenv()
 
 
 async def authenticate(request: Request, call_next):
+    path = request.url.path
     if (
-        '/auth/' in request.url.path or
-        '/docs' in request.url.path or
-        '/openapi.json' in request.url.path or
-        ('/snippets' in request.url.path and request.method == 'GET') or
-        '/data/languages' in request.url.path or
-        '/data/themes' in request.url.path or
+        '/auth/' in path or
+        '/docs' in path or
+        '/openapi.json' in path or
+        ('/snippets/private' in path and request.method == 'POST') or
+        (('/snippets/my' not in path and '/snippets' in path) and request.method == 'GET') or
+        '/data/languages' in path or
+        '/data/themes' in path or
         request.method == 'OPTIONS'
     ):
         return await call_next(request)
