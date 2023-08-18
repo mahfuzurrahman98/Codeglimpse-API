@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from database import db
-from models.Snippet import Snippet, get_language_name
+from models.Snippet import Snippet, get_language
 from schemas.SnippetSchema import (createSnippetSchema, privateSnippetSchema,
                                    updateSnippetSchema)
 from utils import UID
@@ -134,6 +134,12 @@ def index(
 
         snippets = [snippet.serialize() for snippet in snippets]
         for snippet in snippets:
+            del snippet['id']
+            del snippet['visibility']
+            del snippet['font_size']
+            del snippet['updated_at']
+            snippet['mode'] = get_language(snippet['_lang'])['mode']
+            del snippet['_lang']
             snippet['source_code'] = snippet['source_code'][:200] if len(
                 snippet['source_code']) > 200 else snippet['source_code']
 
@@ -154,12 +160,20 @@ def index(
 @router.get('/snippets/{uid}')
 def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
     try:
+        _snippet = snippet.serialize()
+        del _snippet['id']
+        del _snippet['visibility']
+        del _snippet['font_size']
+        del _snippet['updated_at']
+        _snippet['mode'] = get_language(_snippet['_lang'])['mode']
+        del _snippet['_lang']
+
         return JSONResponse(
             status_code=200,
             content={
                 'detail': 'Snipppet fetched successfully',
                 'data': {
-                    'snippet': snippet.serialize()
+                    'snippet': _snippet
                 }
             }
         )
@@ -233,7 +247,7 @@ def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, De
                         'title': _snippet.title,
                         'source_code': _snippet.source_code,
                         'visibility': _snippet.visibility,
-                        'language': get_language_name(_snippet.language),
+                        'language': get_language(_snippet.language)['name'],
                         'theme': _snippet.theme,
                         'font_size': _snippet.font_size
                     }
