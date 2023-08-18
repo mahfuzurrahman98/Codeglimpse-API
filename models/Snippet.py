@@ -45,6 +45,7 @@ class Snippet(Base):
             'uid': self.uid,
             'title': self.title,
             'source_code': self.source_code,
+            '_lang': self.language,
             'language': get_language(self.language)['name'],
             'visibility': self.visibility,
             'theme': self.theme,
