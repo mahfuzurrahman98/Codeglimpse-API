@@ -107,7 +107,12 @@ def index(
                     'detail': 'No snippets found',
                 }
             )
+
         snippets = [snippet.serialize() for snippet in snippets]
+        for snippet in snippets:
+            snippet['source_code'] = snippet['source_code'][:200] if len(
+                snippet['source_code']) > 200 else snippet['source_code']
+
         return JSONResponse(
             status_code=200,
             content={
