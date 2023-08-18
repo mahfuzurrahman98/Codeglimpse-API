@@ -141,9 +141,7 @@ def validate_snippet(request: Request, uid: str):
         )
 
     if snippet.visibility == 2:  # private
-        # if the user requesting to view the snippet is the owner of the snippet then allow
-        # check request state has user and user id is equal to snippet user id
-        if request.state.user and request.state.user.get('id') == snippet.user_id:
+        if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
             return snippet
 
         raise HTTPException(
