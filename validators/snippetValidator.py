@@ -129,3 +129,26 @@ def validate_delete_snippet(request: Request, id: int):
         )
 
     return existing_snippet
+
+
+def validate_snippet(request: Request, uid: str):
+    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
+
+    if snippet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Snippet not found'
+        )
+
+    if snippet.visibility == 2:  # private
+        # if the user requesting to view the snippet is the owner of the snippet then allow
+        # check request state has user and user id is equal to snippet user id
+        if request.state.user and request.state.user.get('id') == snippet.user_id:
+            return snippet
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='This snippet is private'
+        )
+    else:
+        return snippet
