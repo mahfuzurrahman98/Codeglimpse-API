@@ -50,21 +50,44 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
 
 # get only your snippets
 @router.get('/snippets/my')
-def get_my_snippets(request: Request):
+def get_my_snippets(
+    request: Request,
+    q: str = '',
+    page: int = 1,
+    limit: int = 10,
+):
     try:
-        snippets = db.query(Snippet).filter(
-            Snippet.user_id == request.state.user.get('id')
-        ).all()
+        title_condition = Snippet.title.ilike(f"%{q}%")
+        tag_condition = Snippet.tags.ilike(f"%{q}%")
+
+        snippets = (
+            db.query(Snippet)
+            .filter(
+                Snippet.user_id == request.state.user.get('id'),
+                title_condition | tag_condition
+            )
+            .limit(limit)
+            .offset((page - 1) * limit)
+            .all()
+        )
 
         if len(snippets) == 0:
             return JSONResponse(
                 status_code=404,
                 content={
-                    'detail': 'You have no snippets yet',
+                    'detail': 'No snippets found',
                 }
             )
 
         snippets = [snippet.serialize() for snippet in snippets]
+        # filer only the title, tags, language, visibility, created_at, updated_at
+        for snippet in snippets:
+            del snippet['source_code']
+            if snippet['visibility'] == 2:
+                del snippet['pass_code']
+            del snippet['theme']
+            del snippet['font_size']
+
         return JSONResponse(
             status_code=200,
             content={
@@ -75,7 +98,7 @@ def get_my_snippets(request: Request):
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)+' xtra')
 
 
 # get all public snippets
@@ -177,12 +200,10 @@ def show_private_snippet(request: Request, uid: str, pass_code: privateSnippetSc
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=502, detail=str(e))
 
 
-# -----------------------
-
-
+# update a snippet
 @router.put('/snippets/{id}')
 def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
     # Find the snippet to update
@@ -225,6 +246,7 @@ def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, De
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# delete a snippet
 @router.delete('/snippets/{id}')
 def destroy(request: Request, snippet: Snippet = Depends(validate_delete_snippet)):
     try:
