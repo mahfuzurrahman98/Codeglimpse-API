@@ -144,45 +144,6 @@ def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# check a snippet is private or not
-@router.get('/snippets/private/{uid}')
-def check_private(request: Request, uid: str):
-    try:
-        snippet = db.query(Snippet).filter(
-            Snippet.uid == uid
-        ).first()
-
-        if snippet is None:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    'detail': 'Snippets not found',
-                }
-            )
-
-        snippet = snippet.serialize()
-
-        private = True
-        # if the user is the owner of the snippet
-        if request.state.user.get('id') == snippet.user_id:
-            private = False
-        else:  # if the user is not the owner of the snippet
-            # if visibility = 2, then the snippet is private, else public
-            private = snippet.visibility == 2
-
-        return JSONResponse(
-            status_code=200,
-            content={
-                'detail': 'Snipppet fetched successfully',
-                'data': {
-                    'private': private
-                }
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 # get a private snippet with passcode
 @router.post('/snippets/private/{uid}')
 def show_private_snippet(request: Request, uid: str, pass_code: privateSnippetSchema):
