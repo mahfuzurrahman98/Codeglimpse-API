@@ -12,6 +12,10 @@ ext_list = [lang['ext'] for lang in languages]
 theme_list = [theme['value'] for theme in themes]
 
 
+def isOnlyAlphaNeumeric(string: str):
+    return string.isalnum() and not string.isalpha() and not string.isnumeric()
+
+
 def validate_new_snippet(request: Request, snippet: createSnippetSchema):
     snippet.title = snippet.title.strip()
     snippet.source_code = snippet.source_code.strip()
@@ -42,7 +46,7 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
                 detail='Pass code is mandatory'
             )
 
-        if not snippet.pass_code.isalnum():
+        if not isOnlyAlphaNeumeric(snippet.pass_code):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail='Invalid pass code'
