@@ -8,7 +8,8 @@ from models.Snippet import Snippet, get_language_name
 from schemas.SnippetSchema import (createSnippetSchema, privateSnippetSchema,
                                    updateSnippetSchema)
 from utils import UID
-from validators.snippetValidator import (validate_delete_snippet,
+from validators.snippetValidator import (validate_snippet,
+                                         validate_delete_snippet,
                                          validate_new_snippet,
                                          validate_update_snippet)
 
@@ -78,7 +79,7 @@ def get_my_snippets(request: Request):
 
 
 # get all public snippets
-@router.get('/snippets/public')
+@router.get('/snippets')
 def index(
     request: Request,
     q: str = '',
@@ -128,31 +129,14 @@ def index(
 
 # get a single snippet
 @router.get('/snippets/{uid}')
-def show(request: Request, uid: str):
+def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
     try:
-        snippet = db.query(Snippet).filter(
-            Snippet.uid == uid
-        ).first()
-
-        if snippet is None:
-            return JSONResponse(
-                status_code=404,
-                content={
-                    'detail': 'Snippets not found',
-                }
-            )
-
-        if (snippet.user_id != request.state.user.get('id') and snippet.visibility == 2):
-            raise HTTPException(
-                status_code=403, detail='Access denied, this snippet is private')
-
-        snippet = snippet.serialize()
         return JSONResponse(
             status_code=200,
             content={
                 'detail': 'Snipppet fetched successfully',
                 'data': {
-                    'snippet': snippet
+                    'snippet': snippet.serialize()
                 }
             }
         )
@@ -161,7 +145,7 @@ def show(request: Request, uid: str):
 
 
 # check a snippet is private or not
-@router.get('/snippets/{uid}')
+@router.get('/snippets/private/{uid}')
 def check_private(request: Request, uid: str):
     try:
         snippet = db.query(Snippet).filter(
