@@ -14,13 +14,15 @@ load_dotenv()
 
 
 async def authenticate(request: Request, call_next):
-    if ('/auth/' in request.url.path or
+    if (
+        '/auth/' in request.url.path or
         '/docs' in request.url.path or
         '/openapi.json' in request.url.path or
-        '/snippets/public' in request.url.path or
+        ('/snippets' in request.url.path and request.method == 'GET') or
         '/data/languages' in request.url.path or
         '/data/themes' in request.url.path or
-            request.method == 'OPTIONS'):
+        request.method == 'OPTIONS'
+    ):
         return await call_next(request)
 
     token_exception = JSONResponse(
