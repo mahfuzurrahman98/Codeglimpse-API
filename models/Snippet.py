@@ -7,10 +7,10 @@ from models.User import User
 from lib.data.languages import languages
 
 
-def get_language_name(ext):
+def get_language(ext):
     for lang in languages:
         if lang['ext'] == ext:
-            return lang['name']
+            return lang
     return None
 
 
@@ -45,7 +45,7 @@ class Snippet(Base):
             'uid': self.uid,
             'title': self.title,
             'source_code': self.source_code,
-            'language': get_language_name(self.language),
+            'language': get_language(self.language)['name'],
             'visibility': self.visibility,
             'theme': self.theme,
             'font_size': self.font_size,
