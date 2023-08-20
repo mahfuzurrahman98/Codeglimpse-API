@@ -33,12 +33,6 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
             detail='Invalid theme'
         )
 
-    if snippet.font_size not in [14, 16, 18, 20, 22, 24]:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail='Invalid font size'
-        )
-
     if snippet.visibility == 2:
         if snippet.pass_code is None:
             raise HTTPException(
@@ -109,9 +103,6 @@ def validate_update_snippet(request: Request, id: int, update_snippet: updateSni
 
     if update_snippet.theme is not None:
         update_snippet.theme = update_snippet.theme.strip()
-
-    if update_snippet.font_size is not None:
-        update_snippet.font_size = update_snippet.font_size
 
     return update_snippet
 

@@ -12,7 +12,6 @@ class createSnippetSchema(BaseModel):
     visibility: int
     pass_code: Optional[str] = None
     theme: str
-    font_size: int
 
     @field_validator('title')
     def validate_blank_title_field(cls, value):
@@ -62,7 +61,6 @@ class updateSnippetSchema(BaseModel):
     visibility: Optional[int]
     passcode: Optional[str]
     theme: Optional[str]
-    font_size: Optional[int]
 
     @field_validator('title')
     def validate_title_field(cls, value):

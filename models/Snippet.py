@@ -25,7 +25,6 @@ class Snippet(Base):
     visibility = Column(SmallInteger, nullable=False)
     pass_code = Column(String(6), nullable=True)
     theme = Column(String(25), nullable=False, server_default='monokai')
-    font_size = Column(SmallInteger, nullable=False, server_default='14')
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
     updated_at = Column(
@@ -49,7 +48,6 @@ class Snippet(Base):
             'language': get_language(self.language)['name'],
             'visibility': self.visibility,
             'theme': self.theme,
-            'font_size': self.font_size,
             'owner': self.user.name,
 
         }

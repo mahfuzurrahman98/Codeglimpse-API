@@ -29,7 +29,6 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             visibility=snippet.visibility,
             pass_code=snippet.pass_code if snippet.pass_code is not None else None,
             theme=snippet.theme if snippet.theme is not None else 'monokai',
-            font_size=snippet.font_size if snippet.font_size is not None else 14,
             user_id=request.state.user.get('id')
         )
         db.add(new_snippet)
@@ -86,7 +85,6 @@ def get_my_snippets(
             if snippet['visibility'] == 2:
                 del snippet['pass_code']
             del snippet['theme']
-            del snippet['font_size']
 
         return JSONResponse(
             status_code=200,
@@ -136,7 +134,6 @@ def index(
         for snippet in snippets:
             del snippet['id']
             del snippet['visibility']
-            del snippet['font_size']
             del snippet['updated_at']
             snippet['mode'] = get_language(snippet['_lang'])['mode']
             del snippet['_lang']
@@ -163,7 +160,6 @@ def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
         _snippet = snippet.serialize()
         del _snippet['id']
         del _snippet['visibility']
-        del _snippet['font_size']
         del _snippet['updated_at']
         _snippet['mode'] = get_language(_snippet['_lang'])['mode']
         del _snippet['_lang']
@@ -232,7 +228,6 @@ def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, De
     _snippet.visibility = snippet.visibility if snippet.visibility is not None else _snippet.visibility
     _snippet.pass_code = snippet.pass_code if snippet.pass_code is not None else _snippet.pass_code
     _snippet.theme = snippet.theme if snippet.theme is not None else _snippet.theme
-    _snippet.font_size = snippet.font_size if snippet.font_size is not None else _snippet.font_size
 
     try:
         db.commit()
@@ -248,8 +243,7 @@ def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, De
                         'source_code': _snippet.source_code,
                         'visibility': _snippet.visibility,
                         'language': get_language(_snippet.language)['name'],
-                        'theme': _snippet.theme,
-                        'font_size': _snippet.font_size
+                        'theme': _snippet.theme
                     }
                 }
             }
