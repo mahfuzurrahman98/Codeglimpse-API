@@ -10,8 +10,12 @@ from sqlalchemy import and_
 
 from database import db
 from models.User import User
-from schemas.UserSchema import (createUserSchema, loginFormSchema,
-                                updateUserSchema)
+from schemas.UserSchema import (
+    createUserSchema,
+    loginFormSchema,
+    callbackSchema,
+    updateUserSchema
+)
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
 from validators.userValidator import check_existing_user
@@ -19,113 +23,104 @@ from validators.userValidator import check_existing_user
 load_dotenv()
 router = APIRouter()
 
-# Login and Register using Password
+
+# # Register using Password
+# @router.post('/users/auth/register')
+# def register(
+#     user: Annotated[createUserSchema, Depends(check_existing_user)]
+# ):
+#     try:
+#         new_user = User(
+#             name=user.name,
+#             username=user.username,
+#             email=user.email,
+#             password=Hash.make(user.password)
+#         )
+
+#         db.add(new_user)
+#         db.commit()
+
+#         resp = {
+#             'detail': 'User created',
+#             'data': new_user.serialize()
+#         }
+#         return JSONResponse(status_code=201, content=resp)
+
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post('/users/auth/register')
-def register(
-    user: Annotated[createUserSchema, Depends(check_existing_user)]
-):
-    try:
-        new_user = User(
-            name=user.name,
-            username=user.username,
-            email=user.email,
-            password=Hash.make(user.password)
-        )
+# # Login using Password
+# @router.post('/users/auth/login')
+# def login(
+#     form_data: loginFormSchema
+# ):
+#     try:
+#         user = db.query(User).filter(
+#             User.email == form_data.email
+#         ).first()
 
-        db.add(new_user)
-        db.commit()
+#         if not user or not Hash.verify(form_data.password, user.password):
+#             return JSONResponse(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 content={'detail': 'Invalid Credentials'}
+#             )
 
-        resp = {
-            'detail': 'User created',
-            'data': new_user.serialize()
-        }
-        return JSONResponse(status_code=201, content=resp)
+#         access_token = Auth.create_access_token(data={'sub': user.email})
+#         print(access_token)
+#         refresh_token = Auth.create_refresh_token(data={'sub': user.email})
+#         response = JSONResponse(
+#             status_code=status.HTTP_200_OK,
+#             content={
+#                 'detail': 'Login successful',
+#                 'data': {
+#                     'user': user.serialize(),
+#                     'access_token': access_token
+#                 }
+#             },
+#             headers={'WWW-Authenticate': 'Bearer'},
+#         )
+#         # print(response)
+#         response.set_cookie(
+#             key='refresh_token',
+#             value=refresh_token,
+#             max_age=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+#             expires=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+#             # path='/api/v1/users/auth/refreshtoken',
+#             path='/',
+#             secure=False,
+#             httponly=True,
+#             samesite="strict",
+#         )
+#         return response
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post('/users/auth/login')
-def login(
-    form_data: loginFormSchema
-):
-    try:
-        user = db.query(User).filter(
-            User.email == form_data.email
-        ).first()
-
-        if not user or not Hash.verify(form_data.password, user.password):
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={'detail': 'Invalid Credentials'}
-            )
-
-        access_token = Auth.create_access_token(data={'sub': user.email})
-        print(access_token)
-        refresh_token = Auth.create_refresh_token(data={'sub': user.email})
-        response = JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                'detail': 'Login successful',
-                'data': {
-                    'user': user.serialize(),
-                    'access_token': access_token
-                }
-            },
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
-        # print(response)
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            max_age=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
-            expires=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
-            # path='/api/v1/users/auth/refreshtoken',
-            path='/',
-            secure=False,
-            httponly=True,
-            samesite="strict",
-        )
-        return response
-
-    except UnknownHashError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)+' xx',
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e) + ' x2x',
-        )
+#     except UnknownHashError as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_400_BAD_REQUEST,
+#             detail=str(e)+' xx',
+#         )
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=str(e) + ' x2x',
+#         )
 
 
 # Login using Google OAuth
-@router.get("/users/auth/google-login")
-def initiate_google_oauth_login():
-    google_auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={environ.get('GOOGLE_CLIENT_ID')}&redirect_uri={environ.get('GOOGLE_REDIRECT_LOGIN_URI')}&response_type=code&scope=openid%20profile%20email"
-    print(google_auth_url)
-    return RedirectResponse(url=google_auth_url)
-
-
-@router.get('/users/auth/google-login/callback')
-def google_oauth_login_callback(code: str):
+@router.post('/users/auth/google-login')
+def google_oauth_login(form_data: callbackSchema):
     data = {
-        "code": code,
+        "code": form_data.code,
         "client_id": environ.get('GOOGLE_CLIENT_ID'),
         "client_secret": environ.get('GOOGLE_CLIENT_SECRET'),
-        "redirect_uri": environ.get('GOOGLE_REDIRECT_LOGIN_URI'),
+        "redirect_uri": environ.get('GOOGLE_REDIRECT_URI'),
         "grant_type": "authorization_code",
     }
 
     response = httpx.post("https://oauth2.googleapis.com/token", data=data)
     if response.status_code == 200:
         access_token = response.json()["access_token"]
-        # return response.json()
 
-        # Fetch user info using the access token from userinfo endpoint
         userinfo_response = httpx.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
             headers={"Authorization": f"Bearer {access_token}"}
@@ -133,44 +128,72 @@ def google_oauth_login_callback(code: str):
 
         if userinfo_response.status_code == 200:
             userinfo = userinfo_response.json()
-            # return userinfo
-            user_email = userinfo.get("email")
+            print(userinfo)
 
-            if user_email is not None:
-                try:
-                    user = db.query(User).filter(
-                        and_(User.email == user_email, User.google_auth == 0)
-                    ).first()
+            try:
+                user = db.query(User).filter(
+                    and_(
+                        User.email == userinfo.get("email"),
+                        User.google_auth == 1
+                    )
+                ).first()
 
-                    if not user:
-                        return JSONResponse(
-                            status_code=status.HTTP_401_UNAUTHORIZED,
-                            content={'detail': 'Invalid Credentials'},
-                            headers={'WWW-Authenticate': 'Bearer'},
+                if not user:
+                    try:
+                        user = User(
+                            name=userinfo.get("name"),
+                            username=userinfo.get("given_name"),
+                            email=userinfo.get("email"),
+                            google_auth=1
                         )
 
-                    access_token = Auth.create_access_token(
-                        data={'sub': user.email}
-                    )
-                    return JSONResponse(
-                        status_code=status.HTTP_200_OK,
-                        content={
+                        db.add(user)
+                        db.commit()
+                    except Exception as e:
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=str(e)+'err from create user',
+                        )
+
+                access_token = Auth.create_access_token(
+                    data={'sub': user.email}
+                )
+                refresh_token = Auth.create_refresh_token(
+                    data={'sub': user.email}
+                )
+                response = JSONResponse(
+                    status_code=status.HTTP_200_OK,
+                    content={
+                        'detail': 'Login successful',
+                        'data': {
+                            'user': user.serialize(),
                             'access_token': access_token
-                        },
-                    )
-                except UnknownHashError as e:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=str(e),
-                    )
-                except Exception as e:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=str(e),
-                    )
-            else:
+                        }
+                    }
+                )
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    max_age=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+                    expires=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+                    # path='/api/v1/users/auth/refreshtoken',
+                    path='/',
+                    secure=False,
+                    httponly=True,
+                    samesite="strict",
+                )
+                return response
+            except UnknownHashError as e:
                 raise HTTPException(
-                    status_code=401, detail="Failed to fetch user info")
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e)+'err from hash',
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=str(e)+'err from filter user',
+                )
+
         else:
             raise HTTPException(
                 status_code=401, detail="Failed to fetch user info")
@@ -179,87 +202,7 @@ def google_oauth_login_callback(code: str):
             status_code=401, detail="Google OAuth login failed")
 
 
-# Register using Google OAuth
-@router.get("/users/auth/google-register")
-def initiate_google_oauth_register():
-    google_auth_url = f"https://accounts.google.com/o/oauth2/auth?client_id={environ.get('GOOGLE_CLIENT_ID')}&redirect_uri={environ.get('GOOGLE_REDIRECT_REGISTER_URI')}&response_type=code&scope=openid%20profile%20email"
-    print(google_auth_url)
-    return RedirectResponse(url=google_auth_url)
-
-
-@router.get('/users/auth/google-register/callback')
-def google_oauth_register_callback(code: str):
-    data = {
-        "code": code,
-        "client_id": environ.get('GOOGLE_CLIENT_ID'),
-        "client_secret": environ.get('GOOGLE_CLIENT_SECRET'),
-        "redirect_uri": environ.get('GOOGLE_REDIRECT_REGISTER_URI'),
-        "grant_type": "authorization_code",
-    }
-
-    response = httpx.post("https://oauth2.googleapis.com/token", data=data)
-
-    if response.status_code == 200:
-        access_token = response.json()["access_token"]
-
-        userinfo_response = httpx.get(
-            "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"}
-        )
-
-        if userinfo_response.status_code == 200:
-            userinfo = userinfo_response.json()
-
-            user_email = userinfo.get("email")
-
-            if user_email is not None:
-                try:
-                    existing_email = db.query(User).filter(
-                        User.email == user_email).first()
-                    if existing_email:
-                        raise HTTPException(
-                            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                            detail="Email already registered"
-                        )
-
-                    new_user = User(
-                        name=userinfo.get("name"),
-                        username=userinfo.get("given_name"),
-                        email=user_email,
-                        password=None,
-                        google_auth=1
-                    )
-
-                    db.add(new_user)
-                    db.commit()
-
-                    resp = {
-                        'detail': 'User created',
-                        'data': {
-                            'id': new_user.id,
-                            'name': new_user.name,
-                            'username': new_user.username,
-                            'email': new_user.email,
-                        }
-                    }
-                    return JSONResponse(status_code=201, content=resp)
-
-                except Exception as e:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=str(e),
-                    )
-            else:
-                raise HTTPException(
-                    status_code=401, detail="Failed to fetch user info")
-        else:
-            raise HTTPException(
-                status_code=401, detail="Failed to fetch user info")
-    else:
-        raise HTTPException(
-            status_code=401, detail="Google OAuth failed")
-
-
+# refresh token
 @router.post('/users/auth/refreshtoken')
 def refresh_token(request: Request):
     token_exception = JSONResponse(
@@ -312,6 +255,7 @@ def refresh_token(request: Request):
         )
 
 
+# Logout
 @router.post('/users/auth/logout')
 def logout():
     response = JSONResponse(
