@@ -13,7 +13,7 @@ db_port = environ.get('DB_PORT')
 db_name = environ.get('DB_NAME')
 db_user = environ.get('DB_USERNAME')
 db_password = environ.get('DB_PASSWORD')
-db_connector = 'mysql+mysqlconnector' if db_connection == 'mysql' else 'postgresql+psycopg2'
+db_connector = 'mysql+mysqlconnector' if db_connection == 'mysql' else 'postgresql'
 
 connection_string = f"{db_connector}://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
 
