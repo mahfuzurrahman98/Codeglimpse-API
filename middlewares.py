@@ -16,6 +16,7 @@ load_dotenv()
 async def authenticate(request: Request, call_next):
     path = request.url.path
     if (
+        path == '/' or
         '/auth/' in path or
         '/docs' in path or
         '/openapi.json' in path or
@@ -45,7 +46,8 @@ async def authenticate(request: Request, call_next):
         email = payload.get('sub')
         if not email:
             raise token_exception
-    except Exception:
+
+    except Exception as e:
         return token_exception
 
     user = db.query(User).filter(User.email == email).first()
