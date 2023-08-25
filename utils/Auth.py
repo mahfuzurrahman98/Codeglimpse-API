@@ -43,7 +43,23 @@ def create_refresh_token(data: dict):
     return encoded_jwt
 
 
-def decode(token):
+def decode_access_token(token):
+    try:
+        payload = jwt.decode(
+            token.replace('Bearer ', ''),
+            environ.get('ACCESS_TOKEN_SECRET'),
+            algorithms=[environ.get('ALGORITHM')]
+        )
+        return payload
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
+
+def decode_refresh_token(token):
     try:
         payload = jwt.decode(
             token.replace('Bearer ', ''),
@@ -54,6 +70,6 @@ def decode(token):
     except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Unauthorized',
+            detail=str(e),
             headers={"WWW-Authenticate": "Bearer"}
         )
