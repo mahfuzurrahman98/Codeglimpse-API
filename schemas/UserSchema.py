@@ -17,6 +17,17 @@ class loginFormSchema(BaseModel):
         return value
 
 
+class callbackSchema(BaseModel):
+    code: str
+
+    @field_validator('code')
+    def validate_code(cls, value):
+        value = value.strip()
+        if value == '':
+            raise ValueError('Code cannot be blank')
+        return value
+
+
 class createUserSchema(BaseModel):
     name: str
     email: EmailStr
