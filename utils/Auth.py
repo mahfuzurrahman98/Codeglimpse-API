@@ -20,7 +20,7 @@ def create_access_token(data: dict):
     to_encode.update({'exp': expire})
     encoded_jwt = jwt.encode(
         to_encode,
-        environ.get('REFRESH_TOKEN_SECRET'),
+        environ.get('ACCESS_TOKEN_SECRET'),
         algorithm=environ.get('ALGORITHM')
     )
     return encoded_jwt
