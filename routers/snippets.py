@@ -96,7 +96,7 @@ def get_my_snippets(
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)+' xtra')
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # get all public snippets
