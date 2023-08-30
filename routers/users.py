@@ -218,7 +218,7 @@ def refresh_token(request: Request):
         return token_exception
 
     try:
-        payload = Auth.decode(token)
+        payload = Auth.decode_refresh_token(token)
         email = payload.get('sub')
         if not email:
             raise token_exception
@@ -257,9 +257,9 @@ def refresh_token(request: Request):
 
 # Logout
 @router.post('/users/auth/logout')
-def logout():
+def logout(request: Request):
     response = JSONResponse(
-        status_code=status.HTTP_204_NO_CONTENT,
+        status_code=status.HTTP_200_OK,
         content={
             'detail': 'Logout successful',
         }
