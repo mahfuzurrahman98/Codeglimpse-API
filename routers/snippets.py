@@ -186,7 +186,6 @@ def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSc
         ).first()
 
         if snippet is None:
-            print("error 1")
             return JSONResponse(
                 status_code=404,
                 content={
@@ -202,18 +201,23 @@ def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSc
                 }
             )
 
-        snippet = snippet.serialize()
+        _snippet = snippet.serialize()
+        del _snippet['id']
+        del _snippet['visibility']
+        del _snippet['updated_at']
+        _snippet['mode'] = get_language(_snippet['_lang'])['mode']
+        del _snippet['_lang']
+
         return JSONResponse(
             status_code=200,
             content={
                 'detail': 'Snipppet fetched successfully',
                 'data': {
-                    'snippet': snippet
+                    'snippet': _snippet
                 }
             }
         )
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 
