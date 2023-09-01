@@ -15,7 +15,7 @@ load_dotenv()
 
 async def authenticate(request: Request, call_next):
     path = request.url.path
-    print(path)
+    # print(path)
     if (
         path == '/' or
         '/auth/' in path or
