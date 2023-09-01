@@ -162,12 +162,15 @@ def google_oauth_login(form_data: callbackSchema):
                 refresh_token = Auth.create_refresh_token(
                     data={'sub': user.email}
                 )
+
+                _user = user.serialize()
+                _user['picture'] = userinfo.get('picture')
                 response = JSONResponse(
                     status_code=status.HTTP_200_OK,
                     content={
                         'detail': response_message,
                         'data': {
-                            'user': user.serialize(),
+                            'user': _user,
                             'access_token': access_token
                         }
                     }
