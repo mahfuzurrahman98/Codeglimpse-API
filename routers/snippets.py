@@ -179,13 +179,14 @@ def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
 
 # get a private snippet with passcode
 @router.post('/snippets/private/{uid}')
-def show_private_snippet(request: Request, uid: str, pass_code: privateSnippetSchema):
+def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSchema):
     try:
         snippet = db.query(Snippet).filter(
             Snippet.uid == uid
         ).first()
 
         if snippet is None:
+            print("error 1")
             return JSONResponse(
                 status_code=404,
                 content={
@@ -193,10 +194,12 @@ def show_private_snippet(request: Request, uid: str, pass_code: privateSnippetSc
                 }
             )
 
-        if (snippet.pass_code != pass_code):
-            raise HTTPException(
+        if (snippet.pass_code != form_data.pass_code):
+            return JSONResponse(
                 status_code=403,
-                detail='Access denied, provide the correct passcode'
+                content={
+                    'detail': 'Access denied, provide the correct passcode'
+                }
             )
 
         snippet = snippet.serialize()
@@ -210,7 +213,8 @@ def show_private_snippet(request: Request, uid: str, pass_code: privateSnippetSc
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # update a snippet
