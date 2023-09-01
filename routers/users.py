@@ -128,8 +128,8 @@ def google_oauth_login(form_data: callbackSchema):
 
         if userinfo_response.status_code == 200:
             userinfo = userinfo_response.json()
-            print(userinfo)
 
+            response_message = 'Login successful'
             try:
                 user = db.query(User).filter(
                     and_(
@@ -149,6 +149,7 @@ def google_oauth_login(form_data: callbackSchema):
 
                         db.add(user)
                         db.commit()
+                        response_message = 'Welcome to Codeglimpse!'
                     except Exception as e:
                         raise HTTPException(
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -164,7 +165,7 @@ def google_oauth_login(form_data: callbackSchema):
                 response = JSONResponse(
                     status_code=status.HTTP_200_OK,
                     content={
-                        'detail': 'Login successful',
+                        'detail': response_message,
                         'data': {
                             'user': user.serialize(),
                             'access_token': access_token
@@ -212,7 +213,6 @@ def refresh_token(request: Request):
     )
 
     token = request.cookies.get('refresh_token')
-    print(token)
 
     if not token:
         return token_exception
