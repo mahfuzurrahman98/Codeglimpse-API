@@ -228,6 +228,9 @@ def refresh_token(request: Request):
         user = db.query(User).filter(User.email == email).first()
         if not user:
             raise token_exception
+
+        _user = user.serialize()
+        _user['picture'] = ''
     except Exception:
         return token_exception
 
@@ -239,7 +242,7 @@ def refresh_token(request: Request):
             content={
                 'detail': 'Authentication successful',
                 'data': {
-                    'user': user.serialize(),
+                    'user': _user,
                     'access_token': access_token,
                 }
             },
