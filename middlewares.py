@@ -15,7 +15,7 @@ load_dotenv()
 
 async def authenticate(request: Request, call_next):
     path = request.url.path
-    # print(path)
+
     if (
         path == '/' or
         '/auth/' in path or
@@ -23,7 +23,7 @@ async def authenticate(request: Request, call_next):
         '/redoc' in path or
         '/openapi.json' in path or
         ('/snippets/private' in path and request.method == 'POST') or
-        ('/snippets' in path and request.method == 'GET') or
+        ('/snippets' in path and '/snippets/my' not in path and request.method == 'GET') or
         '/data/languages' in path or
         '/data/themes' in path or
         request.method == 'OPTIONS'
@@ -44,7 +44,7 @@ async def authenticate(request: Request, call_next):
     token = token.replace('Bearer ', '')
 
     try:
-        payload = Auth.decode(token)
+        payload = Auth.decode_access_token(token)
         email = payload.get('sub')
         if not email:
             raise token_exception
