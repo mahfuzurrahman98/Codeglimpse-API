@@ -221,6 +221,34 @@ def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSc
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# edit a single snippet
+@router.get('/snippets/{uid}/edit')
+def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
+    try:
+        _snippet = snippet.serialize()
+        del _snippet['id']
+        del _snippet['created_at']
+        del _snippet['updated_at']
+        del _snippet['owner']
+
+        _snippet['mode'] = get_language(_snippet['_lang'])['mode']
+        _snippet['language'] = _snippet['_lang']
+
+        del _snippet['_lang']
+
+        return JSONResponse(
+            status_code=200,
+            content={
+                'detail': 'Snipppet fetched successfully',
+                'data': {
+                    'snippet': _snippet
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # update a snippet
 @router.put('/snippets/{id}')
 def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
