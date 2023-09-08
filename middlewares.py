@@ -9,13 +9,24 @@ from jose import JWTError
 from database import db
 from models.User import User
 from utils import Auth
+import re
 
 load_dotenv()
 
 
 async def authenticate(request: Request, call_next):
     path = request.url.path
+    print(path)
+    edit_route_pattern = r'/snippets/[a-zA-Z0-9]+/edit'
 
+    is_edit_route = False
+    if re.search(edit_route_pattern, path):
+        is_edit_route = True
+
+    print("edit_route_matched", is_edit_route)
+
+    x = '/snippets' in path and request.method == 'GET' and not is_edit_route and '/snippets/my' not in path
+    print("x", x)
     if (
         path == '/' or
         '/auth/' in path or
@@ -23,11 +34,19 @@ async def authenticate(request: Request, call_next):
         '/redoc' in path or
         '/openapi.json' in path or
         ('/snippets/private' in path and request.method == 'POST') or
-        ('/snippets' in path and '/snippets/my' not in path and request.method == 'GET') or
+        (
+            '/snippets' in path and request.method == 'GET' and
+            (
+                not is_edit_route and
+                '/snippets/my' not in path
+            )
+        ) or
+
         '/data/languages' in path or
         '/data/themes' in path or
         request.method == 'OPTIONS'
     ):
+        print("skipped")
         return await call_next(request)
 
     token_exception = JSONResponse(
@@ -36,9 +55,12 @@ async def authenticate(request: Request, call_next):
         headers={'WWW-Authenticate': 'Bearer'},
     )
 
+    print("here comes the ")
+
     token = request.headers.get('Authorization')
 
     if not token or not token.startswith('Bearer '):
+        print('token not found')
         return token_exception
 
     token = token.replace('Bearer ', '')
@@ -47,6 +69,7 @@ async def authenticate(request: Request, call_next):
         payload = Auth.decode_access_token(token)
         email = payload.get('sub')
         if not email:
+            print('email not found')
             raise token_exception
 
     except Exception as e:
@@ -54,8 +77,10 @@ async def authenticate(request: Request, call_next):
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
+        print('user not found')
         return token_exception
 
+    print("user=name:", user.name)
     request.state.user = {
         'id': user.id,
         'name': user.name,
@@ -65,24 +90,3 @@ async def authenticate(request: Request, call_next):
 
     response = await call_next(request)
     return response
-
-
-async def get_current_user(token: Annotated[str, Depends(OAuth2PasswordBearer(tokenUrl='/auth/login'))]):
-    token_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail='Invalid tokoen',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
-    try:
-        payload = Auth.decode(token)
-        username: str = payload.get('sub')
-        if username is None:
-            raise token_exception
-
-    except JWTError:
-        raise token_exception
-
-    user = db.query(User).filter(User.username == username).first()
-    if user is None:
-        raise token_exception
-    return user
