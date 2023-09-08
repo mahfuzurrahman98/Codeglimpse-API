@@ -16,17 +16,14 @@ load_dotenv()
 
 async def authenticate(request: Request, call_next):
     path = request.url.path
-    print(path)
     edit_route_pattern = r'/snippets/[a-zA-Z0-9]+/edit'
 
     is_edit_route = False
     if re.search(edit_route_pattern, path):
         is_edit_route = True
 
-    print("edit_route_matched", is_edit_route)
-
     x = '/snippets' in path and request.method == 'GET' and not is_edit_route and '/snippets/my' not in path
-    print("x", x)
+
     if (
         path == '/' or
         '/auth/' in path or
@@ -46,7 +43,6 @@ async def authenticate(request: Request, call_next):
         '/data/themes' in path or
         request.method == 'OPTIONS'
     ):
-        print("skipped")
         return await call_next(request)
 
     token_exception = JSONResponse(
@@ -55,12 +51,9 @@ async def authenticate(request: Request, call_next):
         headers={'WWW-Authenticate': 'Bearer'},
     )
 
-    print("here comes the ")
-
     token = request.headers.get('Authorization')
 
     if not token or not token.startswith('Bearer '):
-        print('token not found')
         return token_exception
 
     token = token.replace('Bearer ', '')
@@ -69,7 +62,6 @@ async def authenticate(request: Request, call_next):
         payload = Auth.decode_access_token(token)
         email = payload.get('sub')
         if not email:
-            print('email not found')
             raise token_exception
 
     except Exception as e:
@@ -77,10 +69,8 @@ async def authenticate(request: Request, call_next):
 
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        print('user not found')
         return token_exception
 
-    print("user=name:", user.name)
     request.state.user = {
         'id': user.id,
         'name': user.name,
