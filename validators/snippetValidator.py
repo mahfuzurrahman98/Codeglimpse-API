@@ -136,12 +136,34 @@ def validate_snippet(request: Request, uid: str):
         )
 
     if snippet.visibility == 2:  # private
+        # print("state user", request.state.user.get('name'))
         if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
             return snippet
 
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='This snippet is private'
+            detail='This is a private snippet'
         )
     else:
         return snippet
+
+
+def validate_edit_snippet(request: Request, uid: str):
+    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
+
+    if snippet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Snippet not found'
+        )
+
+    print("snippet user id:", snippet.user_id)
+    print("request state user id:", request.state.user.get('id'))
+
+    if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
+        return snippet
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You are not autrhroized to edit this snippet'
+        )
