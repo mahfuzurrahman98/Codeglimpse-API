@@ -8,10 +8,13 @@ from models.Snippet import Snippet, get_language
 from schemas.SnippetSchema import (createSnippetSchema, privateSnippetSchema,
                                    updateSnippetSchema)
 from utils import UID
-from validators.snippetValidator import (validate_snippet,
-                                         validate_delete_snippet,
-                                         validate_new_snippet,
-                                         validate_update_snippet)
+from validators.snippetValidator import (
+    validate_snippet,
+    validate_new_snippet,
+    validate_edit_snippet,
+    validate_update_snippet,
+    validate_delete_snippet,
+)
 
 router = APIRouter()
 
@@ -223,7 +226,7 @@ def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSc
 
 # edit a single snippet
 @router.get('/snippets/{uid}/edit')
-def show(request: Request, snippet: Snippet = Depends(validate_snippet)):
+def edit(request: Request, snippet: Snippet = Depends(validate_edit_snippet)):
     try:
         _snippet = snippet.serialize()
         del _snippet['id']
