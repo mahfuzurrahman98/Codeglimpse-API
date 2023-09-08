@@ -284,8 +284,8 @@ def update(request: Request, uid: str, snippet: Annotated[updateSnippetSchema, D
 
 
 # delete a snippet
-@router.delete('/snippets/{id}')
-def destroy(request: Request, snippet: Snippet = Depends(validate_delete_snippet)):
+@router.delete('/snippets/{uid}')
+def destroy(request: Request, uid: str, snippet: Snippet = Depends(validate_delete_snippet)):
     try:
         db.delete(snippet)
         db.commit()

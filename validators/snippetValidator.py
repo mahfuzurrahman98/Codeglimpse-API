@@ -113,8 +113,8 @@ def validate_update_snippet(request: Request, uid: str, update_snippet: updateSn
     return update_snippet
 
 
-def validate_delete_snippet(request: Request, id: int):
-    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
+def validate_delete_snippet(request: Request, uid: str):
+    existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if existing_snippet is None:
         raise HTTPException(
