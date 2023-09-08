@@ -13,7 +13,7 @@ def create_access_token(data: dict):
     to_encode = data.copy()
 
     expires_delta = timedelta(
-        minutes=int(environ.get('ACCESS_TOKEN_EXPIRE_MINUTES'))
+        minutes=float(environ.get('ACCESS_TOKEN_EXPIRE_MINUTES'))
     )
     expire = datetime.utcnow() + expires_delta if expires_delta else datetime.utcnow()
 
@@ -30,7 +30,7 @@ def create_refresh_token(data: dict):
     to_encode = data.copy()
 
     expires_delta = timedelta(
-        minutes=int(environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'))
+        minutes=float(environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'))
     )
     expire = datetime.utcnow() + expires_delta if expires_delta else datetime.utcnow()
 
