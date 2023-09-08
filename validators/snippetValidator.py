@@ -69,6 +69,12 @@ def validate_update_snippet(request: Request, uid: str, update_snippet: updateSn
             detail='Snippet not found'
         )
 
+    if request.state.user.get('id') != existing_snippet.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You don\'t have permission to edit this snippet'
+        )
+
     if update_snippet.title is not None:
         update_snippet.title = update_snippet.title.strip()
 
