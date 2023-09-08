@@ -54,33 +54,46 @@ class createSnippetSchema(BaseModel):
 
 
 class updateSnippetSchema(BaseModel):
-    title: Optional[str]
-    source_code: Optional[str]
-    language: Optional[str]
-    tags: Optional[list[str]]
-    visibility: Optional[int]
-    passcode: Optional[str]
-    theme: Optional[str]
+    title: Optional[str] = None
+    source_code: Optional[str] = None
+    language: Optional[str] = None
+    tags: Optional[list[str]] = None
+    visibility: Optional[int] = None
+    pass_code: Optional[str] = None
+    theme: Optional[str] = None
 
     @field_validator('title')
     def validate_title_field(cls, value):
         value = value.strip()
-        if value is not None and not isinstance(value, cls.title.type):
+        if value is not None and not isinstance(value, str):
             raise ValueError('Invalid type for title field')
         return value
 
     @field_validator('source_code')
     def validate_content_field(cls, value):
         value = value.strip()
-        if value is not None and not isinstance(value, cls.content.type):
+        if value is not None and not isinstance(value, str):
             raise ValueError('Invalid type for source code field')
         return value
 
     @field_validator('language')
     def validate_language_field(cls, value):
         value = value.strip()
-        if value is not None and not isinstance(value, cls.language.type):
+        if value is not None and not isinstance(value, str):
             raise ValueError('Invalid type for language field')
+        return value
+
+    @field_validator('visibility')
+    def validate_visibility_field(cls, value):
+        if value is not None and value not in [1, 2]:
+            raise ValueError('Invalid type for visibility field')
+        return value
+
+    @field_validator('theme')
+    def validate_theme_field(cls, value):
+        value = value.strip()
+        if value is not None and not isinstance(value, str):
+            raise ValueError('Invalid type for theme field')
         return value
 
 

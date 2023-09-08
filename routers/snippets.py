@@ -253,43 +253,33 @@ def edit(request: Request, snippet: Snippet = Depends(validate_edit_snippet)):
 
 
 # update a snippet
-@router.put('/snippets/{id}')
-def update(request: Request, id: int, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
-    # Find the snippet to update
-    _snippet = db.query(Snippet).filter(Snippet.id == id).first()
-    if not _snippet:
-        raise HTTPException(status_code=404, detail='Snippet not found')
-
-    # Update the snippet attributes based on the request
-    _snippet.title = snippet.title if snippet.title is not None else _snippet.title
-    _snippet.source_code = snippet.source_code if snippet.source_code is not None else _snippet.source_code
-    _snippet.language = snippet.language if snippet.language is not None else _snippet.language
-    _snippet.visibility = snippet.visibility if snippet.visibility is not None else _snippet.visibility
-    _snippet.pass_code = snippet.pass_code if snippet.pass_code is not None else _snippet.pass_code
-    _snippet.theme = snippet.theme if snippet.theme is not None else _snippet.theme
-
+@router.put('/snippets/{uid}')
+def update(request: Request, uid: str, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
     try:
+        existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
+
+        if snippet.title is not None:
+            snippet.title = snippet.title.strip()
+        if snippet.source_code is not None:
+            existing_snippet.source_code = snippet.source_code
+        if snippet.language is not None:
+            existing_snippet.language = snippet.language
+        if snippet.tags is not None:
+            existing_snippet.visibility = snippet.visibility
+        if snippet.visibility is not None:
+            existing_snippet.pass_code = snippet.pass_code
+        if snippet.theme is not None:
+            existing_snippet.theme = snippet.theme
+
         db.commit()
+
         return JSONResponse(
             status_code=200,
             content={
-                'detail': 'Snippet updated successfully',
-                'data': {
-                    'snippet': {
-                        'id': _snippet.id,
-                        'uid': _snippet.uid,
-                        'title': _snippet.title,
-                        'source_code': _snippet.source_code,
-                        'visibility': _snippet.visibility,
-                        'language': get_language(_snippet.language)['name'],
-                        'theme': _snippet.theme
-                    }
-                }
+                'detail': 'Snippet updated successfully'
             }
         )
-
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
 

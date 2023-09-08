@@ -60,8 +60,8 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
     return snippet
 
 
-def validate_update_snippet(request: Request, id: int, update_snippet: updateSnippetSchema):
-    existing_snippet = db.query(Snippet).filter(Snippet.id == id).first()
+def validate_update_snippet(request: Request, uid: str, update_snippet: updateSnippetSchema):
+    existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if existing_snippet is None:
         raise HTTPException(
@@ -78,7 +78,7 @@ def validate_update_snippet(request: Request, id: int, update_snippet: updateSni
     if update_snippet.language is not None:
         update_snippet.language = update_snippet.language.strip()
 
-    if update_snippet.visibility is not None:
+    if update_snippet.visibility is not None and update_snippet.visibility == 2:
         if update_snippet.pass_code is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -136,7 +136,6 @@ def validate_snippet(request: Request, uid: str):
         )
 
     if snippet.visibility == 2:  # private
-        # print("state user", request.state.user.get('name'))
         if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
             return snippet
 
@@ -156,9 +155,6 @@ def validate_edit_snippet(request: Request, uid: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail='Snippet not found'
         )
-
-    print("snippet user id:", snippet.user_id)
-    print("request state user id:", request.state.user.get('id'))
 
     if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
         return snippet
