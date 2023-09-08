@@ -33,31 +33,53 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
             detail='Invalid theme'
         )
 
-    if snippet.visibility == 2:
-        if snippet.pass_code is None:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='Pass code is mandatory'
-            )
-
-        if not isOnlyAlphaNeumeric(snippet.pass_code):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='Invalid pass code'
-            )
-
-        if len(snippet.pass_code) != 6:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='Pass code should be 6 characters'
-            )
-
     if snippet.tags and len(snippet.tags) > 0:
         snippet.tags = ','.join(snippet.tags)
     else:
         snippet.tags = None
 
     return snippet
+
+
+def validate_snippet(request: Request, uid: str):
+    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
+
+    if snippet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Snippet not found'
+        )
+
+    if snippet.visibility == 2:  # private
+        # print("user_id", request.state.user.get('id'))
+        print("snippet user_id", snippet.user_id)
+        if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
+            return snippet
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='This is a private snippet'
+        )
+    else:
+        return snippet
+
+
+def validate_edit_snippet(request: Request, uid: str):
+    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
+
+    if snippet is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Snippet not found'
+        )
+
+    if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
+        return snippet
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='You are not autrhroized to edit this snippet'
+        )
 
 
 def validate_update_snippet(request: Request, uid: str, update_snippet: updateSnippetSchema):
@@ -84,14 +106,8 @@ def validate_update_snippet(request: Request, uid: str, update_snippet: updateSn
     if update_snippet.language is not None:
         update_snippet.language = update_snippet.language.strip()
 
-    if update_snippet.visibility is not None and update_snippet.visibility == 2:
-        if update_snippet.pass_code is None:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail='Pass code is mandatory'
-            )
-
-        if not update_snippet.pass_code.isalnum():
+    if update_snippet.visibility is not None and update_snippet.visibility == 2 and update_snippet.pass_code is not None:
+        if not isOnlyAlphaNeumeric(update_snippet.pass_code):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail='Invalid pass code'
@@ -130,42 +146,3 @@ def validate_delete_snippet(request: Request, uid: str):
         )
 
     return existing_snippet
-
-
-def validate_snippet(request: Request, uid: str):
-    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
-
-    if snippet is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Snippet not found'
-        )
-
-    if snippet.visibility == 2:  # private
-        if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
-            return snippet
-
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='This is a private snippet'
-        )
-    else:
-        return snippet
-
-
-def validate_edit_snippet(request: Request, uid: str):
-    snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
-
-    if snippet is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Snippet not found'
-        )
-
-    if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
-        return snippet
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail='You are not autrhroized to edit this snippet'
-        )
