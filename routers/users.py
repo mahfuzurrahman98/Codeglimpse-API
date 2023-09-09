@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from os import environ
 from typing import Annotated
 
@@ -175,11 +176,17 @@ def google_oauth_login(form_data: callbackSchema):
                         }
                     }
                 )
+
+                max_age_minutes = int(
+                    environ.get('REFRESH_TOKEN_EXPIRE_MINUTES')
+                )
+                max_age_seconds = max_age_minutes * 60
+
                 response.set_cookie(
                     key='refresh_token',
                     value=refresh_token,
-                    max_age=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
-                    expires=environ.get('REFRESH_TOKEN_EXPIRE_MINUTES'),
+                    max_age=max_age_seconds,
+                    expires=max_age_seconds,
                     # path='/api/v1/users/auth/refreshtoken',
                     path='/',
                     secure=False,
@@ -210,7 +217,7 @@ def google_oauth_login(form_data: callbackSchema):
 @router.post('/users/auth/refreshtoken')
 def refresh_token(request: Request):
     token_exception = JSONResponse(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+        status_code=status.HTTP_400_BAD_REQUEST,
         content={'detail': 'Unauthorized'},
         headers={'WWW-Authenticate': 'Bearer'},
     )
