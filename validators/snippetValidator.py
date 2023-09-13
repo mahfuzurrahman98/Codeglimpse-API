@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 
 from database import db
 from lib.data.languages import languages
@@ -7,6 +7,7 @@ from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from utils.helpers import tags_arr_to_str
+from middlewares import get_current_user
 
 ext_list = [lang['ext'] for lang in languages]
 theme_list = [theme['value'] for theme in themes]
@@ -16,7 +17,11 @@ def isOnlyAlphaNeumeric(string: str):
     return string.isalnum() and not string.isalpha() and not string.isnumeric()
 
 
-def validate_new_snippet(request: Request, snippet: createSnippetSchema):
+def validate_new_snippet(
+    request: Request,
+    snippet: createSnippetSchema,
+    user=Depends(get_current_user)
+):
     snippet.title = snippet.title.strip()
     snippet.source_code = snippet.source_code.strip()
     snippet.language = snippet.language.strip()
@@ -41,7 +46,11 @@ def validate_new_snippet(request: Request, snippet: createSnippetSchema):
     return snippet
 
 
-def validate_snippet(request: Request, uid: str):
+def validate_snippet(
+    request: Request,
+    uid: str,
+    user=Depends(get_current_user)
+):
     snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if snippet is None:
@@ -51,9 +60,9 @@ def validate_snippet(request: Request, uid: str):
         )
 
     if snippet.visibility == 2:  # private
-        # print("user_id", request.state.user.get('id'))
+        # print("user_id", user.get('id'))
         print("snippet user_id", snippet.user_id)
-        if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
+        if hasattr(request.state, 'user') and user.get('id') == snippet.user_id:
             return snippet
 
         raise HTTPException(
@@ -64,7 +73,11 @@ def validate_snippet(request: Request, uid: str):
         return snippet
 
 
-def validate_edit_snippet(request: Request, uid: str):
+def validate_edit_snippet(
+    request: Request,
+    uid: str,
+    user=Depends(get_current_user)
+):
     snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if snippet is None:
@@ -73,7 +86,7 @@ def validate_edit_snippet(request: Request, uid: str):
             detail='Snippet not found'
         )
 
-    if hasattr(request.state, 'user') and request.state.user.get('id') == snippet.user_id:
+    if user.get('id') == snippet.user_id:
         return snippet
     else:
         raise HTTPException(
@@ -82,7 +95,12 @@ def validate_edit_snippet(request: Request, uid: str):
         )
 
 
-def validate_update_snippet(request: Request, uid: str, update_snippet: updateSnippetSchema):
+def validate_update_snippet(
+    request: Request,
+    uid: str,
+    update_snippet: updateSnippetSchema,
+    user=Depends(get_current_user)
+):
     existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if existing_snippet is None:
@@ -91,7 +109,7 @@ def validate_update_snippet(request: Request, uid: str, update_snippet: updateSn
             detail='Snippet not found'
         )
 
-    if request.state.user.get('id') != existing_snippet.user_id:
+    if user.get('id') != existing_snippet.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='You don\'t have permission to edit this snippet'
@@ -129,7 +147,11 @@ def validate_update_snippet(request: Request, uid: str, update_snippet: updateSn
     return update_snippet
 
 
-def validate_delete_snippet(request: Request, uid: str):
+def validate_delete_snippet(
+    request: Request,
+    uid: str,
+    user=Depends(get_current_user)
+):
     existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
     if existing_snippet is None:
@@ -139,7 +161,7 @@ def validate_delete_snippet(request: Request, uid: str):
         )
 
     # check if the user requesting to delet ethe snippet is the owner of the snippet
-    if request.state.user.get('id') != existing_snippet.user_id:
+    if user.get('id') != existing_snippet.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='You don\'t have permission to delete this snippet'

@@ -16,12 +16,18 @@ from validators.snippetValidator import (
     validate_delete_snippet,
 )
 
+from middlewares import get_current_user
+
 router = APIRouter()
 
 
 # create a snippet
 @router.post('/snippets')
-def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)]):
+def store(
+    request: Request,
+    snippet: Annotated[createSnippetSchema, Depends(validate_new_snippet)],
+    user=Depends(get_current_user),
+):
     try:
         new_snippet = Snippet(
             uid=UID.generate(),
@@ -32,7 +38,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
             visibility=snippet.visibility,
             pass_code=snippet.pass_code if snippet.pass_code is not None else None,
             theme=snippet.theme if snippet.theme is not None else 'monokai',
-            user_id=request.state.user.get('id')
+            user_id=user.get('id')
         )
         db.add(new_snippet)
         db.commit()
@@ -54,6 +60,7 @@ def store(request: Request, snippet: Annotated[createSnippetSchema, Depends(vali
 @router.get('/snippets/my')
 def get_my_snippets(
     request: Request,
+    user=Depends(get_current_user),
     q: str = '',
     page: int = 1,
     limit: int = 10,
@@ -65,7 +72,7 @@ def get_my_snippets(
         snippets = (
             db.query(Snippet)
             .filter(
-                Snippet.user_id == request.state.user.get('id'),
+                Snippet.user_id == user.get('id'),
                 title_condition | tag_condition
             )
             .limit(limit)
@@ -226,7 +233,11 @@ def show_private_snippet(request: Request, uid: str, form_data: privateSnippetSc
 
 # edit a single snippet
 @router.get('/snippets/{uid}/edit')
-def edit(request: Request, snippet: Snippet = Depends(validate_edit_snippet)):
+def edit(
+    request: Request,
+    uid: str,
+    snippet: Snippet = Depends(validate_edit_snippet)
+):
     try:
         _snippet = snippet.serialize()
         del _snippet['id']
@@ -254,7 +265,12 @@ def edit(request: Request, snippet: Snippet = Depends(validate_edit_snippet)):
 
 # update a snippet
 @router.put('/snippets/{uid}')
-def update(request: Request, uid: str, snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)]):
+def update(
+    request: Request,
+    uid: str,
+    snippet: Annotated[updateSnippetSchema, Depends(validate_update_snippet)],
+    user=Depends(get_current_user)
+):
     try:
         existing_snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
 
@@ -285,7 +301,12 @@ def update(request: Request, uid: str, snippet: Annotated[updateSnippetSchema, D
 
 # delete a snippet
 @router.delete('/snippets/{uid}')
-def destroy(request: Request, uid: str, snippet: Snippet = Depends(validate_delete_snippet)):
+def destroy(
+    request: Request,
+    uid: str,
+    user=Depends(get_current_user),
+    snippet: Snippet = Depends(validate_delete_snippet)
+):
     try:
         db.delete(snippet)
         db.commit()

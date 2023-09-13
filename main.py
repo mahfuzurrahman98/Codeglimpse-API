@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
-from middlewares import authenticate
 from routers import snippets, users, data
 
 app = FastAPI()
@@ -44,4 +43,3 @@ async def root():
 app.include_router(snippets.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(data.router, prefix="/api/v1")
-app.middleware('http')(authenticate)

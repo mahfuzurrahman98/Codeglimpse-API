@@ -221,10 +221,12 @@ def refresh_token(request: Request):
         content={'detail': 'Unauthorized'},
         headers={'WWW-Authenticate': 'Bearer'},
     )
-
+    
     token = request.cookies.get('refresh_token')
+    print("token: ", token)
 
     if not token:
+        print("err 1")
         return token_exception
 
     try:
@@ -239,6 +241,7 @@ def refresh_token(request: Request):
         _user = user.serialize()
         _user['picture'] = ''
     except Exception:
+        print("err 2")
         return token_exception
 
     try:
@@ -257,11 +260,13 @@ def refresh_token(request: Request):
         )
 
     except UnknownHashError as e:
+        print("err 3", str(e))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
     except Exception as e:
+        print("err 4", str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
