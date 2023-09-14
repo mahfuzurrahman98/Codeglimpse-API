@@ -121,6 +121,15 @@ def index(
         title_condition = Snippet.title.ilike(f"%{q}%")
         tag_condition = Snippet.tags.ilike(f"%{q}%")
 
+        total_count = (
+            db.query(Snippet)
+            .filter(
+                Snippet.visibility == 1,
+                title_condition | tag_condition
+            )
+            .count()
+        )
+
         snippets = (
             db.query(Snippet)
             .filter(
@@ -155,7 +164,8 @@ def index(
             content={
                 'detail': 'Snipppets fetched successfully',
                 'data': {
-                    'snippets': snippets
+                    'snippets': snippets,
+                    'total': total_count
                 }
             }
         )
