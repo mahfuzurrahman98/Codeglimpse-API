@@ -15,7 +15,6 @@ load_dotenv()
 
 
 async def get_current_user(request: Request):
-    print("path: ", request.url)
     token_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='Unauthorized',
@@ -23,9 +22,7 @@ async def get_current_user(request: Request):
     )
 
     token = request.headers.get('Authorization')
-    print("token: ", token)
     if token is None or not token.startswith('Bearer '):
-        print("token is none")
         raise token_exception
 
     token = token.replace('Bearer ', '')
@@ -50,9 +47,35 @@ async def get_current_user(request: Request):
         'email': user.email
     }
 
-    # user = {
-    #     'id': 45,
-    #     'name': 'Arif'
-    # }
+    return user
+
+
+async def get_current_user2(request: Request):
+    token = request.headers.get('Authorization')
+    
+    if token is None or not token.startswith('Bearer '):
+        return None
+
+    token = token.replace('Bearer ', '')
+
+    try:
+        payload = Auth.decode_access_token(token)
+        email = payload.get('sub')
+        if not email:
+            return None
+
+    except Exception as e:
+        return None
+
+    _user = db.query(User).filter(User.email == email).first()
+    if not _user:
+        return None
+
+    user = {
+        'id': _user.id,
+        'name': _user.name,
+        'username': _user.username,
+        'email': _user.email
+    }
 
     return user
