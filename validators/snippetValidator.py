@@ -7,7 +7,7 @@ from models.Snippet import Snippet
 from models.User import User
 from schemas.SnippetSchema import createSnippetSchema, updateSnippetSchema
 from utils.helpers import tags_arr_to_str
-from middlewares import get_current_user
+from middlewares import get_current_user, get_current_user2
 
 ext_list = [lang['ext'] for lang in languages]
 theme_list = [theme['value'] for theme in themes]
@@ -49,10 +49,10 @@ def validate_new_snippet(
 def validate_snippet(
     request: Request,
     uid: str,
-    user=Depends(get_current_user)
+    user=Depends(get_current_user2)
 ):
     snippet = db.query(Snippet).filter(Snippet.uid == uid).first()
-
+    print(user)
     if snippet is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -60,9 +60,7 @@ def validate_snippet(
         )
 
     if snippet.visibility == 2:  # private
-        # print("user_id", user.get('id'))
-        print("snippet user_id", snippet.user_id)
-        if hasattr(request.state, 'user') and user.get('id') == snippet.user_id:
+        if user and user.get('id') == snippet.user_id:
             return snippet
 
         raise HTTPException(
