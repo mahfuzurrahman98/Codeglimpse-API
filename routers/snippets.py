@@ -76,6 +76,7 @@ def get_my_snippets(
                 Snippet.user_id == user.get('id'),
                 title_condition | tag_condition
             )
+            .order_by(desc(Snippet.created_at))
             .limit(limit)
             .offset((page - 1) * limit)
             .all()
