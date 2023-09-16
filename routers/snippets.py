@@ -7,6 +7,7 @@ from database import db
 from models.Snippet import Snippet, get_language
 from schemas.SnippetSchema import (createSnippetSchema, privateSnippetSchema,
                                    updateSnippetSchema)
+from sqlalchemy import desc
 from utils import UID
 from validators.snippetValidator import (
     validate_snippet,
@@ -136,7 +137,8 @@ def index(
                 Snippet.visibility == 1,
                 title_condition | tag_condition
             )
-            .limit(limit)
+            .order_by(desc(Snippet.created_at))
+            .limit(limit)  
             .offset((page - 1) * limit)
             .all()
         )
