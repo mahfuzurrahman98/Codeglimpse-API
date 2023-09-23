@@ -19,7 +19,7 @@ Features
 Getting Started
 ---------------
 
-This is basically the Frontend repo for the project, you can find the source code for the backend here at [Codeglimpse Backend](https://github.com/mahfuzurrahman98/Codeglimpse-API "backend repo")
+This is basically the Backend repo for the project, you can find the source code for the Frontend here at [Codeglimpse Frontend](https://github.com/mahfuzurrahman98/Codeglimpse "frontend repo")
 
 To run CodeGlimpse locally, follow these simple steps:
 
