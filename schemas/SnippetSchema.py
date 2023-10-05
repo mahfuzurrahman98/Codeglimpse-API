@@ -3,6 +3,18 @@ from typing import Optional
 from fastapi import HTTPException, status
 from pydantic import BaseModel, field_validator
 
+class reviewSnippetSchema(BaseModel):
+    source_code: str
+
+    @field_validator('source_code')
+    def validate_blank_source_code_field(cls, value):
+        value = value.strip()
+        if value == '':
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Source code cannot be blank'
+            )
+        return value
 
 class createSnippetSchema(BaseModel):
     title: str
