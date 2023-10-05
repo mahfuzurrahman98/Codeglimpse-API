@@ -27,7 +27,7 @@ from middlewares import get_current_user
 
 router = APIRouter()
 
-# review a snippet
+# review a code snippet
 @router.post('/snippets/review')
 def code_review(
     request: Request,
