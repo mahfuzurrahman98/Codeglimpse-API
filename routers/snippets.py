@@ -5,8 +5,14 @@ from fastapi.responses import JSONResponse
 
 from database import db
 from models.Snippet import Snippet, get_language
-from schemas.SnippetSchema import (createSnippetSchema, privateSnippetSchema,
-                                   updateSnippetSchema)
+
+from schemas.SnippetSchema import (
+    createSnippetSchema,
+    reviewSnippetSchema,
+    privateSnippetSchema,
+    updateSnippetSchema
+)
+from services.code_review_service import review_code
 from sqlalchemy import desc
 from utils import UID
 from validators.snippetValidator import (
@@ -20,6 +26,27 @@ from validators.snippetValidator import (
 from middlewares import get_current_user
 
 router = APIRouter()
+
+# review a snippet
+@router.post('/snippets/review')
+def code_review(
+    request: Request,
+    snippet: reviewSnippetSchema,
+    user=Depends(get_current_user),
+):
+    try:
+        message = review_code(snippet.source_code)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                'detail': 'Code reviewed successfully',
+                'data': {
+                    'message': message
+                }
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # create a snippet
@@ -139,7 +166,7 @@ def index(
                 title_condition | tag_condition
             )
             .order_by(desc(Snippet.created_at))
-            .limit(limit)  
+            .limit(limit)
             .offset((page - 1) * limit)
             .all()
         )
