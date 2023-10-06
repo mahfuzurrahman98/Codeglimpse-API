@@ -32,7 +32,7 @@ router = APIRouter()
 def code_review(
     request: Request,
     snippet: reviewSnippetSchema,
-    user=Depends(get_current_user),
+    # user=Depends(get_current_user),
 ):
     try:
         message = review_code(snippet.source_code)
