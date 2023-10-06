@@ -19,10 +19,10 @@ def review_code(source_code):
         messages.append({'role': 'system', 'content': 'Do a in depth proper code review, make the code documented, and put better comments where needed. Just give the code as output, No additional messages like "here is your code, Sure, blah blah".'})
 
         # Request gpt-3.5-turbo for chat completion
-        response = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
-            messages=messages
-        )
+        # response = openai.ChatCompletion.create(
+        #     model='gpt-3.5-turbo',
+        #     messages=messages
+        # )
 
         # Print the response and add it to the messages list
         # chat_message = response['choices'][0]['message']['content']
