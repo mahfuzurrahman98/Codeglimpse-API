@@ -44,7 +44,3 @@ async def root():
 app.include_router(snippets.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(data.router, prefix="/api/v1")
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8181)
