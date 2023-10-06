@@ -13,10 +13,10 @@ def review_code(source_code):
         ]
 
         # Add the source_code to the list
-        # messages.append({'role': 'user', 'content': source_code})
+        messages.append({'role': 'user', 'content': source_code})
 
         # Add the prompt to modify the code
-        # messages.append({'role': 'system', 'content': 'Do a in depth proper code review, make the code documented, and put better comments where needed. Just give the code as output, No additional messages like "here is your code, Sure, blah blah".'})
+        messages.append({'role': 'system', 'content': 'Do a in depth proper code review, make the code documented, and put better comments where needed. Just give the code as output, No additional messages like "here is your code, Sure, blah blah".'})
 
         # Request gpt-3.5-turbo for chat completion
         # response = openai.ChatCompletion.create(
