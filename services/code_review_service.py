@@ -22,7 +22,8 @@ def review_code(source_code):
         response = requests.request(
             "POST",
             service_url + '/review-code',
-            headers=headers, data=payload
+            headers=headers,
+            data=payload
         )
 
         # it will return a json with {message, and data}, just take the data and return it
