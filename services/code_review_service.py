@@ -27,7 +27,8 @@ def review_code(source_code):
         # Print the response and add it to the messages list
         chat_message = response['choices'][0]['message']['content']
         messages.append({'role': 'assistant', 'content': chat_message})
-        return chat_message
+        # return chat_message
+        return environ.get('OPENAI_API_KEY')
 
     except Exception as e:
         raise e
