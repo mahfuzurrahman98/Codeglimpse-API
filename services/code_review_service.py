@@ -2,7 +2,7 @@ import openai
 from os import environ
 
 # Load your API key from an environment variable or secret management service
-openai.api_key = environ.get('OPENAI_API_KEY')
+openai.api_key = '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'
 
 
 def review_code(source_code):
