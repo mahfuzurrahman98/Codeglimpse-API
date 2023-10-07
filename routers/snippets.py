@@ -35,7 +35,7 @@ def code_review(
     # user=Depends(get_current_user),
 ):
     try:
-        message = review_code0(snippet.source_code)
+        message = review_code(snippet.source_code)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
