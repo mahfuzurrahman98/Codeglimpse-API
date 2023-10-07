@@ -36,28 +36,25 @@ def review_code0(source_code):
         raise e
 
 def review_code(source_code):
-        openai.api_key = environ.get('OPENAI_API_KEY')
-        # Create a list to store all the messages for context
-        messages = [
-            {'role': 'system', 'content': 'You are a helpful assistant.'}
-        ]
+    openai.api_key = environ.get('OPENAI_API_KEY')
+    # Create a list to store all the messages for context
+    messages = []
 
-        # Add the source_code to the list
-        messages.append({'role': 'user', 'content': source_code})
+    # Add the source_code to the list
+    messages.append({'role': 'system', 'content': source_code})
 
-        # Add the prompt to modify the code
-        messages.append({'role': 'system', 'content': 'Do a in depth proper code review, make the code documented, and put better comments where needed. Just give the code as output, No additional messages like "here is your code, Sure, blah blah".'})
+    # Add the prompt to modify the code
+    messages.append({'role': 'system', 'content': 'Do a in depth proper code review, make the code documented, and put better comments where needed. Just give the code as output, No additional messages like "here is your code, Sure, blah blah".'})
 
-        # Request gpt-3.5-turbo for chat completion
-        response = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo',
-            messages=messages
-        )
+    # Request gpt-3.5-turbo for chat completion
+    response = openai.ChatCompletion.create(
+        model='gpt-3.5-turbo',
+        messages=messages
+    )
 
-        # Print the response and add it to the messages list
-        chat_message = response['choices'][0]['message']['content']
-        # just keep the portion between ``` and ```, and also remove the first line
-        chat_message = chat_message.split('```')[1].split('```')[0].split('\n', 1)[1]
-        
-        messages.append({'role': 'assistant', 'content': chat_message})
-        return chat_message
+    # Print the response and add it to the messages list
+    chat_message = response['choices'][0]['message']['content']
+    # just keep the portion between ``` and ```, and also remove the first line
+    chat_message = chat_message.split('```')[1].split('```')[0].split('\n', 1)[1]
+
+    return chat_message
