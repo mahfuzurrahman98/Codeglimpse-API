@@ -12,7 +12,7 @@ from schemas.SnippetSchema import (
     privateSnippetSchema,
     updateSnippetSchema
 )
-from services.code_review_service import review_code
+from services.code_review_service import review_code, review_code0
 from sqlalchemy import desc
 from utils import UID
 from validators.snippetValidator import (
@@ -35,7 +35,7 @@ def code_review(
     # user=Depends(get_current_user),
 ):
     try:
-        message = review_code(snippet.source_code)
+        message = review_code0(snippet.source_code)
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
