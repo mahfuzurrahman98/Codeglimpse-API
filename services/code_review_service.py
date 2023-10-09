@@ -21,9 +21,9 @@ def get_response_openai(source_code, language):
             messages=messages,
             stream=True
         )
-        print(response)
+        # print(response)
     except Exception as e:
-        print("Error in creating campaigns from OpenAI:", str(e))
+        # print("Error in creating campaigns from OpenAI:", str(e))
         raise HTTPException(503, detail=str(e))
 
     for chunk in response:
