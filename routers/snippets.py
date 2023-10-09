@@ -34,7 +34,7 @@ router = APIRouter()
 def review_code(
     request: Request,
     snippet: reviewSnippetSchema,
-    user=Depends(get_current_user),
+    # user=Depends(get_current_user),
 ):
     try:
         return StreamingResponse(get_response_openai(snippet.source_code, snippet.language), media_type="text/event-stream")
