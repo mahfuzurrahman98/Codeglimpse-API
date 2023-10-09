@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
 
 from database import db
 from models.Snippet import Snippet, get_language
@@ -12,7 +13,7 @@ from schemas.SnippetSchema import (
     privateSnippetSchema,
     updateSnippetSchema
 )
-from services.code_review_service import review_code, review_code0
+from services.code_review_service import get_response_openai
 from sqlalchemy import desc
 from utils import UID
 from validators.snippetValidator import (
@@ -23,28 +24,20 @@ from validators.snippetValidator import (
     validate_delete_snippet,
 )
 
+
 from middlewares import get_current_user
 
 router = APIRouter()
 
 # review a code snippet
-@router.post('/snippets/review')
-def code_review(
+@router.post('/snippets/code/review')
+def review_code(
     request: Request,
     snippet: reviewSnippetSchema,
-    # user=Depends(get_current_user),
+    user=Depends(get_current_user),
 ):
     try:
-        message = review_code(snippet.source_code)
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={
-                'detail': 'Code reviewed successfully',
-                'data': {
-                    'message': message
-                }
-            }
-        )
+        return StreamingResponse(get_response_openai(snippet.source_code, snippet.language), media_type="text/event-stream")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
