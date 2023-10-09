@@ -5,6 +5,7 @@ from pydantic import BaseModel, field_validator
 
 class reviewSnippetSchema(BaseModel):
     source_code: str
+    language: str
 
     @field_validator('source_code')
     def validate_blank_source_code_field(cls, value):
@@ -13,6 +14,16 @@ class reviewSnippetSchema(BaseModel):
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail='Source code cannot be blank'
+            )
+        return value
+
+    @field_validator('language')
+    def validate_blank_language_field(cls, value):
+        value = value.strip()
+        if value == '':
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail='Language cannot be blank'
             )
         return value
 
