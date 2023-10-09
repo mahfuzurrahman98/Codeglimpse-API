@@ -21,21 +21,12 @@ def get_response_openai(source_code, language):
             messages=messages,
             stream=True
         )
+        print(response)
     except Exception as e:
         print("Error in creating campaigns from OpenAI:", str(e))
         raise HTTPException(503, detail=str(e))
 
     for chunk in response:
         choice_delta = chunk["choices"][0]["delta"]
-        # basically the choice_delta is a object = {'content': 'something'}, if the object is not empty and has conent and the content is not empty, then we can return the content
-
-        if choice_delta and choice_delta["content"]:
-            current_content = choice_delta.get("content", "")
-            # print(current_content)
-            yield current_content
-        else:
-            break
-        # replace \n with <br> to display in html
-        # current_content = current_content.replace("\n", "<br>")
-        # yield current_content
-        # print(current_content)
+        current_content = choice_delta.get("content", "")
+        yield current_content
