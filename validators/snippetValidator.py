@@ -162,7 +162,7 @@ def validate_delete_snippet(
     if user.get('id') != existing_snippet.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail='You don\'t have permission to delete this snippet'
+            detail="You don't have permission to delete this snippet"
         )
 
     return existing_snippet
