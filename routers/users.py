@@ -14,8 +14,7 @@ from models.User import User
 from schemas.UserSchema import (
     createUserSchema,
     loginFormSchema,
-    callbackSchema,
-    updateUserSchema
+    callbackSchema
 )
 from utils import Auth  # as Module
 from utils.Hash import Hash  # as Class
@@ -119,6 +118,7 @@ def google_oauth_login(form_data: callbackSchema):
     }
 
     response = httpx.post("https://oauth2.googleapis.com/token", data=data)
+    print(response.json())
     if response.status_code == 200:
         access_token = response.json()["access_token"]
 
